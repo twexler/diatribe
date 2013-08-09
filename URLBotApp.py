@@ -13,7 +13,7 @@ from flask import Flask, g, url_for, render_template
 from dbinterface import *
 
 DATABASE = None
-DEBUG = True
+DEBUG = False
 app = Flask(__name__)
 
 @app.route("/")
