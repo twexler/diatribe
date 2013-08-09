@@ -1,15 +1,15 @@
 {% extends "layout.html" %}
 {% block title %}Channels{% endblock %}
 {% block body %}
+{% for network in networks %}
 <div class="panel">
-	{% for network in networks %}
+
 	<div class="panel-heading">
 		<h3 class="panel-title">{{ network.name }}</h3>
 	</div>
 	{% for channel in network.channels %}
 	<li><a href="{{ url_for('list_urls', network=network.name, channel=channel.name, page=1, num_results=20) }}">{{ channel.name }}</a></li>
 	{% endfor %}
-	{% endfor %}
-	</div>
 </div>
+{% endfor %}
 {% endblock %}
