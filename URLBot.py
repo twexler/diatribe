@@ -10,7 +10,7 @@ from datetime import datetime
 import requests
 
 from twisted.words.protocols import irc
-from twisted.internet import reactor, protocol
+from twisted.internet import ssl, reactor, protocol
 from BeautifulSoup import BeautifulSoup
 from storm.locals import create_database, Store
 
@@ -111,7 +111,7 @@ def main(network, channel, nickname, dbn, port, ssl):
 	store = Store(database)
 	f = URLBotFactory(network, channel, store)
 	if ssl:
-		reactor.connectSSL(network, port, f)
+		reactor.connectSSL(network, port, f, ssl.ClientContextFactory())
 	else:
 		reactor.connectTCP(network, port, f)
 	reactor.run()
