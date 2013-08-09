@@ -103,14 +103,14 @@ class URLBotFactory(protocol.ClientFactory):
 	def clientConnectionFailed(self, connector, reason):
 		reactor.stop()
 
-def main(network, channel, nickname, dbn, port, ssl):
+def main(network, channel, nickname, dbn, port, ssl_on):
 	if ".db" not in dbn:
 		logging.error("URLBot doesn't support anything except sqlite right now, please use a sqlite db")
 		sys.exit(1)
 	database = create_database("sqlite:%s" % dbn)
 	store = Store(database)
 	f = URLBotFactory(network, channel, store)
-	if ssl:
+	if ssl_on:
 		reactor.connectSSL(network, port, f, ssl.ClientContextFactory())
 	else:
 		reactor.connectTCP(network, port, f)
