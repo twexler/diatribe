@@ -50,17 +50,18 @@ def before_request():
 def teardown_request(obj):
 	g.db.close()
 
-def main():
-	print DATABASE
+def main(host, port):
 	app.config.from_object(__name__)
-	app.run()
+	app.run(host, port)
 
 if __name__ == '__main__':
 	parser = OptionParser()
 	parser.add_option('-D', '--dsn', dest='dsn')
+	parser.add_option('-l', '--listen', dest='listen', default="127.0.0.1")
+	parser.add_option('-p', '--port', dest='port', default=5000, type="int")
 	opts = parser.parse_args()[0]
 	if not opts.dsn:
 		logging.error('no dsn specified')
 		sys.exit(1)
 	DATABASE = "sqlite:%s" % opts.dsn
-	main()
+	main(opts.listen, opts.port)
