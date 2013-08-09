@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css">
+		<title>URLBot: {% block title %}{% endblock %} </title>
+		{% block head %}{% endblock %}
+	</head>
+	<body>		
+		<div class="navbar">
+			<div class="container">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".nav-collapse">
+        			<span class="icon-bar"></span>
+        			<span class="icon-bar"></span>
+        			<span class="icon-bar"></span>
+      			</button>
+      			<a class="navbar-brand" href="{{ url_for('index') }}">URLBot</a>
+      		</div>
+      	</div>
+      	<div class="container">
+			{% block body %}{% endblock %}
+		</div>
+		<!-- jquery, sup -->
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+		<!-- Latest compiled and minified JavaScript -->
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+	</body>
+</html>
