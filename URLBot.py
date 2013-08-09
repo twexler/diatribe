@@ -123,7 +123,7 @@ if __name__ == '__main__':
 	parser.add_option('-N', '--nickname', dest="nickname")
 	parser.add_option('-D', '--database', dest="dbn")
 	parser.add_option('-p', '--port', dest="port", type="int", default=6667)
-	parser.add_option('-s', '--ssl', dest="ssl", action="store_true")
+	parser.add_option('-s', '--ssl', dest="ssl_on", action="store_true")
 	opts = parser.parse_args()[0]
 	for opt, val in opts.__dict__.iteritems():
 		if not val and opt != "ssl":
