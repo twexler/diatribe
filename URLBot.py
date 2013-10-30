@@ -49,6 +49,7 @@ class URLBot(irc.IRCClient):
 			self.join(channel.encode('UTF-8'))
 
 	def joined(self, channel):
+		logging.debug('host_id is %s ' % self.host_id)
 		if channel not in self.channel_ids:
 			self.channel_ids[channel] = hashlib.sha1(channel).hexdigest()[:9]
 			self.factory.store.hmset('%s.channels' % self.host_id, self.channel_ids)
@@ -79,7 +80,7 @@ class URLBot(irc.IRCClient):
 				url_obj['ts'] = time.time()
 				url_id = hashlib.sha1(url).hexdigest()[:9]
 				key = "%s.%s.%s" % (self.host_id, self.channel_ids[channel], url_id)
-				logging.debug("url_obj is %s" % url_obj)
+				logging.debug("url_obj is %s, key is %s" % (url_obj, key))
 				self.factory.store.hmset(key, url_obj)
 		logging.info("%s: <%s> %s" % (channel, nick, msg))
 

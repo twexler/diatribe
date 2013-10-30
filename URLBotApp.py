@@ -42,6 +42,7 @@ def list_urls(network, channel, page, num_results):
 	end = start + num_results
 	key_search = "%s.%s.*" % (net_id, chan_id)
 	url_key_list = g.redis.keys(key_search)
+	logging.debug("key list is %s" % url_key_list)
 	urls = []
 	for url_key in url_key_list:
 		url = g.redis.hgetall(url_key)
