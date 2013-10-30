@@ -1,28 +1,38 @@
 #!/usr/bin/python
 
+import os
 import sys
-import logging
 import math
+import logging
+import urlparse
+import hashlib
 
 from datetime import datetime
 from optparse import OptionParser
 
-from storm.locals import create_database, Store
+import redis
+
 from flask import Flask, g, url_for, render_template
 
-from dbinterface import *
 
 DATABASE = None
-DEBUG = False
+DEBUG = True
 app = Flask(__name__)
 
 @app.route("/")
 def index():
-	Network.channels = ReferenceSet(Network.id, Channel.network_id)
-	return render_template('index.html', networks=g.db.find(Network), url_for=url_for)
+	networks = {}
+	nets = g.redis.hkeys('networks')
+	for net in nets:
+		net_id = hashlib.sha1(net).hexdigest()[:9]
+		chans = g.redis.hkeys('%s.channels' % net_id)
+		networks[net] = chans
+	return render_template('index.html', networks=networks, url_for=url_for)
 
 @app.route("/<network>/<channel>/list/<page>/<num_results>")
 def list_urls(network, channel, page, num_results):
+	net_id = hashlib.sha1(network).hexdigest()[:9]
+	chan_id = hashlib.sha1(channel).hexdigest()[:9]
 	num_results = int(num_results)
 	page = int(page)
 	if page == 1:
@@ -30,25 +40,23 @@ def list_urls(network, channel, page, num_results):
 	else:
 		start = page * num_results
 	end = start + num_results
-	networkObj = g.db.find(Network, Network.name == network).one()
-	channelObj = g.db.find(Channel, Channel.name == channel,
-		Channel.network_id == networkObj.id).one()
-	urls = g.db.find(URL, URL.channel_id == channelObj.id)
-	results_count = urls.count()
-	num_pages = int(math.ceil(float(results_count) / float(num_results)))
-	return render_template('channel.html', network=networkObj,
-		channel=channelObj, results_count=results_count, 
-		num_results=num_results, urls=urls[start:end], page=page, 
-		num_pages=num_pages, url_for=url_for, datetime=datetime, range=range)
+	key_search = "%s.%s.*" % (net_id, chan_id)
+	url_key_list = g.redis.keys(key_search)
+	urls = []
+	for url_key in url_key_list:
+		url = g.redis.hgetall(url_key)
+		url['ts'] = datetime.fromtimestamp(float(url['ts']))
+		urls.append(url)
+	return render_template('channel.html', network=network, channel=channel, urls=urls, range=range)
 
 @app.before_request
 def before_request():
-	db = create_database(DATABASE)
-	g.db = Store(db)
+	url = urlparse.urlparse(os.environ.get('REDISCLOUD_URL') or DATABASE)
+	g.redis = redis.StrictRedis(host=url.hostname, port=url.port, password=url.password)
 
 @app.teardown_request
 def teardown_request(obj):
-	g.db.close()
+	g.redis.connection_pool.disconnect()
 
 def main(host, port):
 	app.config.from_object(__name__)
@@ -63,5 +71,5 @@ if __name__ == '__main__':
 	if not opts.dsn:
 		logging.error('no dsn specified')
 		sys.exit(1)
-	DATABASE = "sqlite:%s" % opts.dsn
+	DATABASE = opts.dsn
 	main(opts.listen, opts.port)

@@ -1,19 +1,19 @@
 {% extends "layout.html" %}
-{% block title %}{{ channel.name }}{% endblock %}
+{% block title %}{{ channel }}{% endblock %}
 {% block body %}
 	<ul class="breadcrumb">
 		<li><a href="{{ url_for('index') }}">Home</a></li>
-		<li class="active">{{ network.name }} - {{ channel.name }}</li>
+		<li class="active">{{ network }} - {{ channel }}</li>
 	</ul>
 	{% for url in urls %}
 	<div class="panel">
 		<div class="panel-heading">
-			<h3 class="panel-title"><a href="{{ url.url.decode('UTF-8') }}">{{ url.title.decode('UTF-8') }}</a></h3>
+			<h3 class="panel-title"><a href="{{ url['url'].decode('UTF-8') }}">{{ url['title'].decode('UTF-8') }}</a></h3>
 		</div>
-		{{ url.timestamp.strftime("%c") }} {{ url.source.decode('UTF-8') }}
+		{{ url['ts'].strftime("%c") }} {{ url['source'].decode('UTF-8') }}
 	</div>
 	{% endfor %}
-	<ul class="pagination">
+{#	<ul class="pagination">
 		<li><a href="{{url_for('list_urls', network=network.name, channel=channel.name, page=page-1, num_results=num_results)}}">&laquo;</a></li>
 		{% for i in range(0, num_pages) %}
 			{% if i+1 == page %}
@@ -23,5 +23,6 @@
 			{% endif %}
 		{% endfor %}
 		<li><a href="{{url_for('list_urls', network=network.name, channel=channel.name, page=page+1, num_results=num_results)}}">&raquo;</a></li>
-	</ul>
+	</ul> 
+#}
 {% endblock %}

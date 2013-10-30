@@ -34,5 +34,5 @@ nosetests.xml
 .project
 .pydevproject
 
-#dbs
-*.db
+#venv
+venv
