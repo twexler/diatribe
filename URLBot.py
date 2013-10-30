@@ -98,10 +98,11 @@ class URLBotFactory(protocol.ClientFactory):
 def main(network, channel, nickname, port, ssl_on, debug, dbn=None):
 	if debug:
 		logging.basicConfig(level=logging.DEBUG)
-	if "redis" not in dbn:
+	dbn = os.environ.get('REDISCLOUD_URL', dbn) 
+	if not dbn or "redis" not in dbn:
 		logging.error("URLBot doesn't support anything except redis right now, please use a redis db")
 		sys.exit(1)
-	url = urlparse.urlparse(os.environ.get('REDISCLOUD_URL') or dbn)
+	url = urlparse.urlparse(dbn)
 	store = redis.StrictRedis(host=url.hostname, port=url.port, password=url.password)
 	f = URLBotFactory(network, channel, store)
 	if ssl_on:
