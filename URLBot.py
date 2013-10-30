@@ -115,7 +115,7 @@ if __name__ == '__main__':
 	parser.add_option('-n', '--network', dest="network")
 	parser.add_option('-c', '--channel', dest='channel')
 	parser.add_option('-N', '--nickname', dest="nickname")
-	parser.add_option('-D', '--database', dest="dbn")
+	parser.add_option('-D', '--database', dest="dbn", default=None)
 	parser.add_option('-p', '--port', dest="port", type="int", default=6667)
 	parser.add_option('-s', '--ssl', dest="ssl_on", action="store_true")
 	parser.add_option('-d', '--debug', action="store_true", dest="debug")
