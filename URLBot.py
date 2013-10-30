@@ -7,6 +7,7 @@ import urlparse
 import logging
 import hashlib
 import time
+import json
 
 from optparse import OptionParser
 
@@ -32,7 +33,7 @@ class URLBot(irc.IRCClient):
 		logging.info("connected")
 
 	def signedOn(self):
-		hostname = self.factory.network.decode('UTF-8')
+		hostname = self.factory.config['network'].decode('UTF-8')
 		logging.info("signed on to %s" % self.hostname)
 		if hostname not in self.factory.store.hkeys('networks'):
 			self.host_id = hashlib.sha1(hostname).hexdigest()[:9]
@@ -41,7 +42,8 @@ class URLBot(irc.IRCClient):
 		else:
 			self.host_id = self.factory.store.hget('networks', hostname)
 			logging.debug('got host id from redis')
-		self.join(self.factory.channel)
+		for channel in self.factory.config['channels']:
+			self.join(channel.encode('UTF-8'))
 
 	def joined(self, channel):
 		if channel not in self.channel_ids:
@@ -79,10 +81,14 @@ class URLBot(irc.IRCClient):
 class URLBotFactory(protocol.ClientFactory):
 	"""docstring for URLBotFavtory"""
 
-	def __init__(self, network, channel, store):
-		self.store = store
-		self.channel = channel
-		self.network = network
+	def __init__(self, config):
+		dbn = os.environ.get('REDISCLOUD_URL', config['dbn']) 
+		if not dbn or "redis" not in dbn:
+			logging.error("URLBot doesn't support anything except redis right now, please use a redis db")
+			sys.exit(1)
+		url = urlparse.urlparse(dbn)
+		self.store = redis.StrictRedis(host=url.hostname, port=url.port, password=url.password)
+		self.config = config
 
 	def buildProtocol(self, addr):
 		p = URLBot()
@@ -95,34 +101,28 @@ class URLBotFactory(protocol.ClientFactory):
 	def clientConnectionFailed(self, connector, reason):
 		reactor.stop()
 
-def main(network, channel, nickname, port, ssl_on, debug, dbn=None):
+def main(config="config.json", debug=False):
 	if debug:
 		logging.basicConfig(level=logging.DEBUG)
-	dbn = os.environ.get('REDISCLOUD_URL', dbn) 
-	if not dbn or "redis" not in dbn:
-		logging.error("URLBot doesn't support anything except redis right now, please use a redis db")
+	try:
+		config = json.load(open(config))
+	except:
+		logging.error('unable to parse config')
 		sys.exit(1)
-	url = urlparse.urlparse(dbn)
-	store = redis.StrictRedis(host=url.hostname, port=url.port, password=url.password)
-	f = URLBotFactory(network, channel, store)
-	if ssl_on:
-		reactor.connectSSL(network, port, f, ssl.ClientContextFactory())
+	f = URLBotFactory(config)
+	if config['ssl']:
+		reactor.connectSSL(config['network'], config['port'], f, ssl.ClientContextFactory())
 	else:
-		reactor.connectTCP(network, port, f)
+		reactor.connectTCP(config['network'], config['port'], f)
 	reactor.run()
 
 if __name__ == '__main__':
 	parser = OptionParser()
-	parser.add_option('-n', '--network', dest="network")
-	parser.add_option('-c', '--channel', dest='channel')
-	parser.add_option('-N', '--nickname', dest="nickname")
-	parser.add_option('-D', '--database', dest="dbn", default=None)
-	parser.add_option('-p', '--port', dest="port", type="int", default=6667)
-	parser.add_option('-s', '--ssl', dest="ssl_on", action="store_true")
+	parser.add_option('-c', '--config', dest='config', default="config.json")
 	parser.add_option('-d', '--debug', action="store_true", dest="debug")
 	opts = parser.parse_args()[0]
 	for opt, val in opts.__dict__.iteritems():
-		if not val and opt != "ssl_on" and opt != "debug" and opt != 'dbn':
+		if not val and opt != "debug":
 			print "missing option --%s" % opt
 			sys.exit(1)
 	main(**opts.__dict__)
