@@ -16,6 +16,7 @@ import requests
 import redis
 
 from twisted.words.protocols import irc
+from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 from twisted.internet import ssl, reactor, protocol
 from BeautifulSoup import BeautifulSoup
 
@@ -72,7 +73,8 @@ class URLBot(irc.IRCClient):
 				soup = BeautifulSoup(r.text)
 				title = soup.title.string
 				my_msg = "%s" % title
-				self.msg(channel.encode('UTF-8'), my_msg.encode('UTF-8'))
+				formatted_msg = assembleFormattedText(A.bold[my_msg.encode('UTF-8')])
+				self.msg(channel.encode('UTF-8'), formatted_msg)
 				url_obj = {}
 				url_obj['title'] = str(title)
 				url_obj['url'] = url
