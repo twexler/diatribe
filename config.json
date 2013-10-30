@@ -1,11 +1,15 @@
 {
-	"network": "irc.freenode.net",
-	"port": 6697,
-	"ssl": true,
-	"nickname": "aurlbot",
 	"dbn": "redis://localhost:6379",
-	"channels": 
-	[
-		"#amaninacan"
-	]
+	"networks": {
+		"freenode":{
+			"network": "irc.freenode.net",
+			"port": 6697,
+			"ssl": true,
+			"nickname": "aurlbot",
+			"channels": 
+			[
+				"#amaninacan"
+			]
+		}
+	}
 }

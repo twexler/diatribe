@@ -6,6 +6,7 @@ import math
 import logging
 import urlparse
 import hashlib
+import json
 
 from datetime import datetime
 from optparse import OptionParser
@@ -14,10 +15,19 @@ import redis
 
 from flask import Flask, g, url_for, render_template
 
+def load_config(config_file="config.json"):
+	try:
+		print config_file
+		config = json.load(open(config_file))
+	except:
+		logging.error('unable to parse config')
+		sys.exit(1)
+	return config
 
-DATABASE = None
+CONFIG = load_config()
 DEBUG = True
 app = Flask(__name__)
+app.config.from_object(__name__)
 
 @app.route("/")
 def index():
@@ -52,25 +62,23 @@ def list_urls(network, channel, page, num_results):
 
 @app.before_request
 def before_request():
-	url = urlparse.urlparse(os.environ.get('REDISCLOUD_URL') or DATABASE)
+	url = urlparse.urlparse(os.environ.get('REDISCLOUD_URL') or app.config['CONFIG']['dbn'])
 	g.redis = redis.StrictRedis(host=url.hostname, port=url.port, password=url.password)
 
 @app.teardown_request
 def teardown_request(obj):
 	g.redis.connection_pool.disconnect()
 
-def main(host, port):
+def main(config, debug):
+	if debug:
+		logging.basicConfig(level=logging.DEBUG)
+	CONFIG = load_config(config)
 	app.config.from_object(__name__)
-	app.run(host, port)
+	app.run(CONFIG.get('host', None), CONFIG.get('port', None))
 
 if __name__ == '__main__':
 	parser = OptionParser()
-	parser.add_option('-D', '--dsn', dest='dsn')
-	parser.add_option('-l', '--listen', dest='listen', default="127.0.0.1")
-	parser.add_option('-p', '--port', dest='port', default=5000, type="int")
+	parser.add_option('-c', '--config', dest='config', default="config.json")
+	parser.add_option('-d', '--debug', action="store_true", dest="debug")
 	opts = parser.parse_args()[0]
-	if not opts.dsn:
-		logging.error('no dsn specified')
-		sys.exit(1)
-	DATABASE = opts.dsn
-	main(opts.listen, opts.port)
+	main(opts.config, opts.debug)
