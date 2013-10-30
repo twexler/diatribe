@@ -2,7 +2,6 @@
 
 import os
 import sys
-import math
 import logging
 import urlparse
 import hashlib
@@ -45,11 +44,6 @@ def list_urls(network, channel, page, num_results):
 	chan_id = hashlib.sha1(channel).hexdigest()[:9]
 	num_results = int(num_results)
 	page = int(page)
-	if page == 1:
-		start = 0
-	else:
-		start = page * num_results
-	end = start + num_results
 	key_search = "%s.%s.*" % (net_id, chan_id)
 	url_key_list = g.redis.keys(key_search)
 	logging.debug("key list is %s" % url_key_list)
