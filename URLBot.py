@@ -25,8 +25,11 @@ URL_RE = r"(http[s]*:\/\/(.*))"
 class URLBot(irc.IRCClient):
 	"""docstring for URLBot"""
 
-	nickname = "aurlbot"
+	nickname = None
 	channel_ids = {}
+
+	def __init__(self, nickname):
+		self.nickname = nickname
 
 	def connectionMade(self):
 		irc.IRCClient.connectionMade(self)
@@ -35,12 +38,12 @@ class URLBot(irc.IRCClient):
 	def signedOn(self):
 		hostname = self.factory.config['network'].decode('UTF-8')
 		logging.info("signed on to %s" % self.hostname)
-		if hostname not in self.factory.store.hkeys('networks'):
-			self.host_id = hashlib.sha1(hostname).hexdigest()[:9]
-			self.factory.store.hset('networks', hostname, self.host_id)
+		if self.factory.network not in self.factory.store.hkeys('networks'):
+			self.host_id = hashlib.sha1(self.factory.network).hexdigest()[:9]
+			self.factory.store.hset('networks', self.factory.network, self.host_id)
 			logging.debug('set host id in redis')
 		else:
-			self.host_id = self.factory.store.hget('networks', hostname)
+			self.host_id = self.factory.store.hget('networks', self.factory.network)
 			logging.debug('got host id from redis')
 		for channel in self.factory.config['channels']:
 			self.join(channel.encode('UTF-8'))
@@ -84,17 +87,18 @@ class URLBot(irc.IRCClient):
 class URLBotFactory(protocol.ClientFactory):
 	"""docstring for URLBotFavtory"""
 
-	def __init__(self, config):
+	def __init__(self, network, config):
 		dbn = os.environ.get('REDISCLOUD_URL', config['dbn']) 
 		if not dbn or "redis" not in dbn:
 			logging.error("URLBot doesn't support anything except redis right now, please use a redis db")
 			sys.exit(1)
 		url = urlparse.urlparse(dbn)
 		self.store = redis.StrictRedis(host=url.hostname, port=url.port, password=url.password)
-		self.config = config
+		self.network = network
+		self.config = config['networks'][network]
 
 	def buildProtocol(self, addr):
-		p = URLBot()
+		p = URLBot(self.config['nickname'].encode('UTF-8'))
 		p.factory = self
 		return p
 
@@ -112,11 +116,15 @@ def main(config="config.json", debug=False):
 	except:
 		logging.error('unable to parse config')
 		sys.exit(1)
-	f = URLBotFactory(config)
-	if config['ssl']:
-		reactor.connectSSL(config['network'], config['port'], f, ssl.ClientContextFactory())
-	else:
-		reactor.connectTCP(config['network'], config['port'], f)
+	for network in config['networks']:
+		net_config = config['networks'][network]
+		logging.debug('netconfig is %s ' % net_config)
+		f = URLBotFactory(network, config)
+		if net_config['ssl']:
+			reactor.connectSSL(net_config['network'], net_config['port'], f, ssl.ClientContextFactory())
+		else:
+			reactor.connectTCP(net_config['network'], net_config['port'], f)
+		del f
 	reactor.run()
 
 if __name__ == '__main__':
