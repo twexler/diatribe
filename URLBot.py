@@ -61,7 +61,10 @@ class URLBot(irc.IRCClient):
 			if matches:
 				url = matches[0][0]  # tuple inside a list, wat
 				logging.info("caught url: %s" % url)
-				r = requests.get(url)
+				try:
+					r = requests.get(url)
+				except requests.exceptions.ConnectionError:
+					logging.debug('invalid url')
 				soup = BeautifulSoup(r.text)
 				title = soup.title.string
 				my_msg = "%s" % title
