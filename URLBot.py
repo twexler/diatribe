@@ -121,7 +121,7 @@ if __name__ == '__main__':
 	parser.add_option('-d', '--debug', action="store_true", dest="debug")
 	opts = parser.parse_args()[0]
 	for opt, val in opts.__dict__.iteritems():
-		if not val and opt != "ssl_on" and opt != "debug":
+		if not val and opt != "ssl_on" and opt != "debug" and opt != 'dbn':
 			print "missing option --%s" % opt
 			sys.exit(1)
 	main(**opts.__dict__)
