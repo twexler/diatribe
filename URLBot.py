@@ -75,7 +75,7 @@ class URLBot(irc.IRCClient):
                     r = requests.get(url)
                 except requests.exceptions.ConnectionError:
                     logging.debug('invalid url')
-                soup = BeautifulSoup(r.text)
+                soup = BeautifulSoup(r.text, convertEntities=BeautifulSoup.HTML_ENTITIES)
                 title = soup.title.string
                 my_msg = "%s" % title
                 formatted_msg = assembleFormattedText(A.bold[my_msg.encode('UTF-8')])
