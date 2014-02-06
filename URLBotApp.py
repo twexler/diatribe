@@ -38,10 +38,17 @@ def index():
 		networks[net] = chans
 	return render_template('index.html', networks=networks, url_for=url_for)
 
-@app.route("/<network>/<channel>/list/<page>/<num_results>")
-def list_urls(network, channel, page, num_results):
+@app.route("/<network>")
+def list_channels(network):
 	net_id = hashlib.sha1(network).hexdigest()[:9]
-	chan_id = hashlib.sha1(channel).hexdigest()[:9]
+	channels = g.redis.hkeys('%s.channels' % net_id)
+	return render_template('network.html', channels=channels, network=network, url_for=url_for)
+
+@app.route("/<network>/<channel>/list")
+@app.route("/<network>/<channel>/list/<page>/<num_results>")
+def list_urls(network, channel, page=1, num_results=20):
+	net_id = hashlib.sha1(network).hexdigest()[:9]
+	chan_id = hashlib.sha1("#"+channel).hexdigest()[:9]
 	num_results = int(num_results)
 	page = int(page)
 	key_search = "%s.%s.*" % (net_id, chan_id)
