@@ -1,0 +1,2 @@
+gunicorn URLBotApp:app &
+python URLBot.py -d
