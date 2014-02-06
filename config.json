@@ -10,6 +10,16 @@
 			[
 				"#amaninacan"
 			]
+		},
+		"efnet":{
+			"network": "irc.paraphysics.net",
+			"port": 6697,
+			"ssl": false,
+			"nickname": "feerbot",
+			"channels":
+			[
+				"#feer"
+			]
 		}
 	}
 }
