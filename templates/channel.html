@@ -3,7 +3,7 @@
 {% block body %}
 	<ul class="breadcrumb">
 		<li><a href="{{ url_for('index') }}">Home</a></li>
-		<li class="active">{{ network }} - {{ channel }}</li>
+		<li class="active">{{ network }} - #{{ channel }}</li>
 	</ul>
 	{% for url in urls %}
 	<div class="panel">
