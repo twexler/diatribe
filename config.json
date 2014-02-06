@@ -2,13 +2,13 @@
 	"dbn": "redis://localhost:6379",
 	"networks": {
 		"efnet":{
-			"network": "irc.paraphysics.net",
-			"port": 6667,
-			"ssl": false,
-			"nickname": "feerbot",
+			"network": "chat.freenode.net",
+			"port": 6697,
+			"ssl": true,
+			"nickname": "aurlbot",
 			"channels":
 			[
-				"#feer"
+				"#amaninacan"
 			]
 		}
 	}
