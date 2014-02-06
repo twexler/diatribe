@@ -13,16 +13,25 @@
 		{{ url['ts'].strftime("%c") }} {{ url['source'].decode('UTF-8') }}
 	</div>
 	{% endfor %}
-{#	<ul class="pagination">
-		<li><a href="{{url_for('list_urls', network=network.name, channel=channel.name, page=page-1, num_results=num_results)}}">&laquo;</a></li>
-		{% for i in range(0, num_pages) %}
+	{% if pages >0 %}
+	<ul class="pagination">
+		{% if page == 1 %}
+		<li class="disabled"><a href="#">&laquo;</a></li>
+		{% else %}
+		<li><a href="{{url_for('list_urls', network=network, channel=channel, page=page-1, num_results=num_results)}}">&laquo;</a></li>
+		{% endif %}
+		{% for i in range(0, pages) %}
 			{% if i+1 == page %}
 			<li class="active"><a href="#" >{{ i+1 }}</a></li>
 			{% else %}
-			<li><a href="{{url_for('list_urls', network=network.name, channel=channel.name, page=i, num_results=num_results)}}">{{ i }}</a></li>
+			<li><a href="{{url_for('list_urls', network=network, channel=channel, page=i+1, num_results=num_results)}}">{{ i+1 }}</a></li>
 			{% endif %}
 		{% endfor %}
-		<li><a href="{{url_for('list_urls', network=network.name, channel=channel.name, page=page+1, num_results=num_results)}}">&raquo;</a></li>
-	</ul> 
-#}
+		{% if pages == 1 or page == pages %}
+		<li class="disabled"><a href="#">&raquo;</a></li>
+		{% else %}
+		<li><a href="{{url_for('list_urls', network=network, channel=channel, page=page+1, num_results=num_results)}}">&raquo;</a></li>
+		{% endif %}
+	</ul>
+	{% endif %}
 {% endblock %}
