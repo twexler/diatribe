@@ -1,3 +1,5 @@
+#requires that plugins/wunderground_key be set in config.json
+
 import logging
 
 import requests
