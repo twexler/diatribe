@@ -12,7 +12,7 @@ from optparse import OptionParser
 
 import redis
 
-from flask import Flask, g, url_for, render_template
+from flask import Flask, g, url_for, render_template, jsonify
 
 def load_config(config_file="config.json"):
 	try:
@@ -53,6 +53,10 @@ def list_urls(network, channel, page, num_results):
 		url['ts'] = datetime.fromtimestamp(float(url['ts']))
 		urls.append(url)
 	return render_template('channel.html', network=network, channel=channel, urls=urls, range=range)
+
+@app.route('/ping')
+def ping():
+	return jsonify({'status': "OK"})
 
 @app.before_request
 def before_request():
