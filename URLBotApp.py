@@ -59,7 +59,14 @@ def list_urls(network, channel, page=1, num_results=20):
 		url = g.redis.hgetall(url_key)
 		url['ts'] = datetime.fromtimestamp(float(url['ts']))
 		urls.append(url)
-	return render_template('channel.html', network=network, channel=channel, urls=urls, range=range)
+	total = len(urls)
+	if num_results > 0 and page:
+		end = num_results * page
+		start = end - num_results
+		urls = urls[start:end]
+	return render_template('channel.html', network=network,
+							channel=channel, urls=urls, range=range, page=page,
+							num_results=num_results, pages=int(total/num_results)+1)
 
 @app.route('/ping')
 def ping():
