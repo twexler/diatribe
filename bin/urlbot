@@ -1,2 +1,2 @@
-gunicorn URLBotApp:app &
+python URLBotApp.py &
 python URLBot.py -d

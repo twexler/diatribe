@@ -1,1 +1,1 @@
-web: bin/urlbot
+web: bin/urlbot-heroku
