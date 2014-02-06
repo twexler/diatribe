@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}Channels - {{ network }}{% endblock %}
+{% block body %}
+<ul class="breadcrumb">
+	<li><a href="{{ url_for('index') }}">Home</a></li>
+</ul>
+<div class="panel">
+
+	<div class="panel-heading">
+		<h3 class="panel-title">{{ network }}</h3>
+	</div>
+	{% for name in channels %}
+	<li><a href="{{ url_for('list_urls', network=network, channel=name[1:], page=1, num_results=20) }}">{{ name }}</a></li>
+	{% endfor %}
+</div>
+{% endblock %}

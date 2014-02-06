@@ -5,10 +5,10 @@
 <div class="panel">
 
 	<div class="panel-heading">
-		<h3 class="panel-title">{{ name }}</h3>
+		<h3 class="panel-title"><a href="{{ url_for('list_channels', network=name) }}" style="color:inherit;">{{ name }}</a></h3>
 	</div>
 	{% for channel in channels %}
-	<li><a href="{{ url_for('list_urls', network=name, channel=channel, page=1, num_results=20) }}">{{ channel }}</a></li>
+	<li><a href="{{ url_for('list_urls', network=name, channel=channel[1:], page=1, num_results=20) }}">{{ channel }}</a></li>
 	{% endfor %}
 </div>
 {% endfor %}
