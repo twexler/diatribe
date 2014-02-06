@@ -125,7 +125,8 @@ class URLBotFactory(protocol.ClientFactory):
         self.store = redis.StrictRedis(host=url.hostname, port=url.port, password=url.password)
         self.network = network
         self.config = config['networks'][network]
-        self.plugin_config = config['plugins']
+        if 'plugins' in config:
+            self.plugin_config = config['plugins']
 
     def buildProtocol(self, addr):
         p = URLBot(self.config['nickname'].encode('UTF-8'))
