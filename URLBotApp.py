@@ -12,7 +12,7 @@ from optparse import OptionParser
 
 import redis
 
-from flask import Flask, g, url_for, render_template, jsonify
+from flask import Flask, g, url_for, render_template, jsonify, send_from_directory, request
 
 def load_config(config_file="config.json"):
 	try:
@@ -57,6 +57,10 @@ def list_urls(network, channel, page, num_results):
 @app.route('/ping')
 def ping():
 	return jsonify({'status': "OK"})
+
+@app.route('/robots.txt')
+def static_from_root():
+    return send_from_directory(app.static_folder, request.path[1:])
 
 @app.before_request
 def before_request():
