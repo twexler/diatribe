@@ -10,7 +10,7 @@
 		<h3 class="panel-title">{{ network }}</h3>
 	</div>
 	{% for name in channels %}
-	<li><a href="{{ url_for('list_urls', network=network, channel=name[1:], page=1, num_results=20) }}">{{ name }}</a></li>
+	<li><a href="{{ url_for('list_urls', network=network, channel=name[1:]) }}">{{ name }}</a></li>
 	{% endfor %}
 </div>
 {% endblock %}
