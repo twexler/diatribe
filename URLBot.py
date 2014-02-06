@@ -62,7 +62,7 @@ class URLBot(irc.IRCClient):
         nick = nick.split("!")[0]
         channel = channel.decode('UTF-8')
         if msg.startswith('!'):
-            cmd = msg.split('!')[1]
+            cmd = msg.split()[0][1:]
             if self.do_command(cmd, channel, msg, nick):
                 return
         if channel != self.nickname:
@@ -93,17 +93,17 @@ class URLBot(irc.IRCClient):
 
     def do_command(self, cmd, channel, msg, user):
         """import the neccessary module for a command handler and execute it's main()"""
-        logging.debug("attempting to re/load %s module" % cmd)
         try:
             name = "modules.%s" % cmd
+            logging.debug("attempting to re/load %s module" % name)
             if name in sys.modules:
-                logging.debug('reloading module %s' % cmd)
+                logging.debug('reloading module %s' % name)
                 reload(sys.modules[name])
                 mod = sys.modules[name]
             else:
                 mod = importlib.import_module(name)
         except Exception as e:
-            logging.exception('Caught exception importing cmd %s' %cmd)
+            logging.exception('Caught exception importing cmd %s' % name)
             return False
         try:
             mod.main(self, channel, msg, user)
@@ -125,6 +125,7 @@ class URLBotFactory(protocol.ClientFactory):
         self.store = redis.StrictRedis(host=url.hostname, port=url.port, password=url.password)
         self.network = network
         self.config = config['networks'][network]
+        self.plugin_config = config['plugins']
 
     def buildProtocol(self, addr):
         p = URLBot(self.config['nickname'].encode('UTF-8'))
