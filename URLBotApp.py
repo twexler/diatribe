@@ -59,6 +59,7 @@ def list_urls(network, channel, page=1, num_results=20):
 		url = g.redis.hgetall(url_key)
 		url['ts'] = datetime.fromtimestamp(float(url['ts']))
 		urls.append(url)
+	urls = sorted(urls, cmp=sort_url_list)
 	total = len(urls)
 	if num_results > 0 and page:
 		end = num_results * page
@@ -84,6 +85,14 @@ def before_request():
 @app.teardown_request
 def teardown_request(obj):
 	g.redis.connection_pool.disconnect()
+
+def sort_url_list(x, y):
+	if x['ts'] > y['ts']:
+		return -1
+	elif x['ts'] == y['ts']:
+		return 0
+	else:
+		return 1
 
 def main(config, debug):
 	if debug:
