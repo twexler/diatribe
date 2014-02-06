@@ -13,7 +13,7 @@
 		},
 		"efnet":{
 			"network": "irc.paraphysics.net",
-			"port": 6697,
+			"port": 6667,
 			"ssl": false,
 			"nickname": "feerbot",
 			"channels":
