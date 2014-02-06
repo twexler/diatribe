@@ -1,16 +1,6 @@
 {
 	"dbn": "redis://localhost:6379",
 	"networks": {
-		"freenode":{
-			"network": "irc.freenode.net",
-			"port": 6697,
-			"ssl": true,
-			"nickname": "aurlbot",
-			"channels": 
-			[
-				"#amaninacan"
-			]
-		},
 		"efnet":{
 			"network": "irc.paraphysics.net",
 			"port": 6667,
