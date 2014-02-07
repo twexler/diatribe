@@ -15,6 +15,9 @@ import redis
 from flask import (Flask, g, url_for,
                    render_template, jsonify, send_from_directory, request)
 
+from twitter import Twitter, OAuth as twitter_oauth
+from twitter.api import TwitterHTTPError
+
 
 def load_config(config_file="config.json"):
     try:
@@ -64,6 +67,11 @@ def list_urls(network, channel, page=1, num_results=20):
     for url_key in url_key_list:
         url = g.redis.hgetall(url_key)
         url['ts'] = datetime.fromtimestamp(float(url['ts']))
+        if 'type' in url:
+            if url['type'] == 'tweet':
+                url['tweet_embed'] = fetch_twitter_embed(url['url'])
+            elif url['type'] == "youtube":
+                url['yt_id'] = urlparse.urlparse(url['url']).query.split('=')[1]
         urls.append(url)
     urls = sorted(urls, sort_url_list)
     total = len(urls)
@@ -71,6 +79,7 @@ def list_urls(network, channel, page=1, num_results=20):
         end = num_results * page
         start = end - num_results
         urls = urls[start:end]
+
     return render_template('channel.html', network=network,
                            channel=channel, urls=urls, range=range, page=page,
                            num_results=num_results,
@@ -97,6 +106,22 @@ def before_request():
 @app.teardown_request
 def teardown_request(obj):
     g.redis.connection_pool.disconnect()
+
+
+def fetch_twitter_embed(tweet_url):
+    if 'plugins' not in CONFIG:
+        return None
+    if 'twitter_api' not in CONFIG['plugins']:
+        return None
+    tweet_id = urlparse.urlparse(tweet_url).path.split('/')[-1:][0]
+    creds = CONFIG['plugins']['twitter_api']
+    auth = twitter_oauth(creds['access_token'], creds['access_token_secret'],
+                         creds['consumer_key'], creds['consumer_secret'])
+    t = Twitter(auth=auth)
+    try:
+        return t.statuses.oembed(_id=tweet_id, align='left')['html']
+    except TwitterHTTPError:
+        return None
 
 
 def sort_url_list(x, y):

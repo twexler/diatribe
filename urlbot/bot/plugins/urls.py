@@ -37,18 +37,22 @@ class URLPlugin():
             r = requests.get(url)
         except requests.exceptions.ConnectionError:
             logging.debug('invalid url')
-        soup = BeautifulSoup(r.text,
-                             convertEntities=BeautifulSoup.HTML_ENTITIES)
-        title = soup.title.string
+        url_obj = {}
+        if 'image' in r.headers['content-type']:
+            url_obj['type'] = "image"
+            title = "Image from %s" % nick
+        else:
+            soup = BeautifulSoup(r.text,
+                                 convertEntities=BeautifulSoup.HTML_ENTITIES)
+            title = soup.title.string
+            url_obj['type'] = 'url'
         my_msg = "%s" % title
         formatted_msg = assembleFormattedText(A.bold[my_msg.encode('UTF-8')])
         self.bot.msg(channel.encode('UTF-8'), formatted_msg)
-        url_obj = {}
         url_obj['title'] = str(title)
         url_obj['url'] = url
         url_obj['source'] = "<%s> %s" % (nick, msg)
         url_obj['ts'] = time.time()
-        url_obj['type'] = 'url'
         url_id = hashlib.sha1(url).hexdigest()[:9]
         self.log_url(url_id, url_obj, channel)
 
