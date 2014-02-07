@@ -7,10 +7,46 @@
 	</ul>
 	{% for url in urls %}
 	<div class="panel">
-		<div class="panel-heading">
-			<h3 class="panel-title"><a href="{{ url['url'].decode('UTF-8') }}">{{ url['title'].decode('UTF-8') }}</a></h3>
+		{% if 'type' in url %}
+			{% if url['type'] == 'tweet' and url['tweet_embed'] %}
+				<div class="panel-heading">
+					<h3 class="panel-title">Tweet from @<a href="http://twitter.com/{{ url['author'] }}">{{ url['author'] }}</a></h3>
+				</div>
+				{{ url['source'].decode('UTF-8') }}
+				<div class='row' style="margin-left:1em;"><div class='col-md-6'>{{ url['tweet_embed']|safe }}</div></div>
+			{% elif url['type'] == 'youtube' %}
+				<div class="panel-heading">
+					<h3 class="panel-title"><a href="{{ url['url'].decode('UTF-8') }}">{{ url['title'].decode('UTF-8') }}</a></h3>
+				</div>
+				{{ url['source'].decode('UTF-8') }}<br/><br/>
+				<div class="row" style="margin-left:1em;">
+					<div class="col-md-6">
+						<iframe id="ytplayer" type="text/html" width="640" height="390"
+  								src="http://www.youtube.com/embed/{{ url['yt_id'] }}"
+  								frameborder="0"></iframe>
+  					</div>
+  				</div>
+  			{% elif url['type'] == "image" %}
+  				<div class="panel-heading">
+					<h3 class="panel-title"><a href="{{ url['url'].decode('UTF-8') }}">{{ url['title'].decode('UTF-8') }}</a></h3>
+				</div>
+				{{ url['source'].decode('UTF-8') }}<br/><br/>
+				<a href="{{ url['url'].decode('UTF-8') }}"><img class="img-thumbnail" src="{{ url['url'] }}"/></a>
+			{% else %}
+				<div class="panel-heading">
+					<h3 class="panel-title"><a href="{{ url['url'].decode('UTF-8') }}">{{ url['title'].decode('UTF-8') }}</a></h3>
+				</div>
+				{{ url['source'].decode('UTF-8') }}
+			{% endif %}
+		{% else %}
+			<div class="panel-heading">
+				<h3 class="panel-title"><a href="{{ url['url'].decode('UTF-8') }}">{{ url['title'].decode('UTF-8') }}</a></h3>
+			</div>
+			{{ url['source'].decode('UTF-8') }}
+		{% endif %}
+		<div class="panel-footer" style="padding: 0.2em;">
+			<span style="font-size: 10px;margin-left:89%;">{{ url['ts'].strftime("%c") }}</span>
 		</div>
-		{{ url['ts'].strftime("%c") }} {{ url['source'].decode('UTF-8') }}
 	</div>
 	{% endfor %}
 	{% if pages >0 %}
