@@ -21,7 +21,7 @@ class WeatherPlugin():
         self.bot = bot
 
     def current_conditions(self, channel, nick, msg, args):
-        query = ' '.join(args['query'].split('/'))
+        query = ' '.join(args['query'].split('  '))
         if 'wunderground_key' not in self.bot.plugin_config:
             logging.debug('configure weather plugin')
             self.bot.msg(channel.encode('UTF-8'),

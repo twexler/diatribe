@@ -25,7 +25,8 @@ class GooglePlugin():
             self.bot.msg('Google search plugin not configured')
         headers = {'Referer': self.bot.plugin_config['google_apis']['referer']}
         try:
-            r = requests.get(API_URL % args['query'], headers=headers)
+            r = requests.get(API_URL % args['query'].replace('  ', ' '),
+                             headers=headers)
             r.raise_for_status()
         except requests.exceptions.HTTPError:
             logging.exception("google search httperror: ")
