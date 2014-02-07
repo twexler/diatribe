@@ -2,43 +2,72 @@
 
 import os
 import sys
-import re
 import urlparse
 import logging
 import hashlib
-import time
 import json
 import importlib
+import glob
 
 from optparse import OptionParser
 
 
-import requests
 import redis
 
 from twisted.words.protocols import irc
-from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 from twisted.internet import ssl, reactor, protocol
-from BeautifulSoup import BeautifulSoup
 
+from werkzeug.routing import Map, DEFAULT_CONVERTERS
 
-URL_RE = r"(http[s]*:\/\/(.*))"
+from routing import *
+
 
 class URLBot(irc.IRCClient):
     """docstring for URLBot"""
 
     nickname = None
-    channel_ids = {}
+    channels = {}
+    plugins = {}
 
-    def __init__(self, nickname):
+    def __init__(self, nickname, config):
         self.nickname = nickname
+        self.plugin_config = config
+        my_converters = {'fstring': FinalStringConverter, 'url': URLConverter}
+        my_converters.update(DEFAULT_CONVERTERS)
+        self.rule_map = Map([], converters=my_converters)
+        self.load_plugins()
+
+    def load_plugins(self):
+        path = os.path.relpath(os.path.dirname(__file__))
+        logging.debug('path is %s' % path)
+        for plugin_src in glob.glob('%s/plugins/*.py' % path):
+            name = plugin_src.replace('.py', '').replace('/', '.')
+            logging.debug('Attempting to load plugin at %s' % name)
+            try:
+                plugin = importlib.import_module(name)
+            except ImportError:
+                logging.error('Unable to load plugin at %s' % plugin_src)
+                logging.exception("Caught exception loading plugin:")
+                continue
+            self.plugins.update({name.split('.')[1]: plugin})
+            try:
+                klass = getattr(plugin, plugin.CLASS_NAME)
+            except AttributeError:
+                logging.error('Unable to load plugin %s, CLASS_NAME undefined' % name)
+                continue
+            try:
+                klass(self)
+                logging.info('successfully loaded plugin %s' % name)
+            except:
+                logging.error('Failed to initialize plugin %s' % name)
+                logging.exception('Caught exception: ')
+        pass
 
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
         logging.info("connected")
 
     def signedOn(self):
-        hostname = self.factory.config['network'].decode('UTF-8')
         logging.info("signed on to %s" % self.hostname)
         if self.factory.network not in self.factory.store.hkeys('networks'):
             self.host_id = hashlib.sha1(self.factory.network).hexdigest()[:9]
@@ -52,72 +81,37 @@ class URLBot(irc.IRCClient):
 
     def joined(self, channel):
         logging.debug('host_id is %s ' % self.host_id)
-        if channel not in self.channel_ids:
-            self.channel_ids[channel] = hashlib.sha1(channel).hexdigest()[:9]
-            self.factory.store.hmset('%s.channels' % self.host_id, self.channel_ids)
-            logging.debug('set %s.channels to %s' % (self.host_id, self.channel_ids))
+        if channel not in self.channels:
+            chan_obj = {}
+            chan_obj['id'] = hashlib.sha1(channel).hexdigest()[:9]
+            chan_obj['map'] = self.rule_map.bind(self.factory.network, '/')
+            self.channels[channel] = chan_obj
+            channel_ids = dict([(k, v['id']) for k,v in self.channels.iteritems()])
+            self.factory.store.hmset('%s.channels' % self.host_id, channel_ids)
+            logging.debug('set %s.channels to %s' % (self.host_id, channel_ids))
         logging.info("joined %s" % channel)
 
     def privmsg(self, nick, channel, msg):
         nick = nick.split("!")[0]
         channel = channel.decode('UTF-8')
-        if msg.startswith('!'):
-            cmd = msg.split()[0][1:]
-            if self.do_command(cmd, channel, msg, nick):
-                return
-        if channel != self.nickname:
-            matches = re.findall(URL_RE, msg)
-            logging.debug("matches: %s" % matches)
-            if matches:
-                url = matches[0][0]  # tuple inside a list, wat
-                logging.info("caught url: %s" % url)
-                try:
-                    r = requests.get(url)
-                except requests.exceptions.ConnectionError:
-                    logging.debug('invalid url')
-                soup = BeautifulSoup(r.text, convertEntities=BeautifulSoup.HTML_ENTITIES)
-                title = soup.title.string
-                my_msg = "%s" % title
-                formatted_msg = assembleFormattedText(A.bold[my_msg.encode('UTF-8')])
-                self.msg(channel.encode('UTF-8'), formatted_msg)
-                url_obj = {}
-                url_obj['title'] = str(title)
-                url_obj['url'] = url
-                url_obj['source'] = "<%s> %s" % (nick, msg)
-                url_obj['ts'] = time.time()
-                url_id = hashlib.sha1(url).hexdigest()[:9]
-                key = "%s.%s.%s" % (self.host_id, self.channel_ids[channel], url_id)
-                logging.debug("url_obj is %s, key is %s" % (url_obj, key))
-                self.factory.store.hmset(key, url_obj)
-        logging.info("%s: <%s> %s" % (channel, nick, msg))
-
-    def do_command(self, cmd, channel, msg, user):
-        """import the neccessary module for a command handler and execute it's main()"""
-        try:
-            name = "modules.%s" % cmd
-            logging.debug("attempting to re/load %s module" % name)
-            if name in sys.modules:
-                logging.debug('reloading module %s' % name)
-                reload(sys.modules[name])
-                mod = sys.modules[name]
-            else:
-                mod = importlib.import_module(name)
-        except Exception as e:
-            logging.exception('Caught exception importing cmd %s' % name)
-            return False
-        try:
-            mod.main(self, channel, msg, user)
-            return True
-        except Exception as e:
-            logging.exception("Caught exception running cmd %s" % cmd)
-            return False
+        mapper = self.channels[channel]['map']
+        logging.debug('mapper rules: %s' % mapper.map._rules)
+        trigger = self.plugin_config['trigger']
+        if msg.startswith(trigger):
+            msg = msg.replace(trigger, '')
+        if msg.startswith(self.nickname + ': '):
+            msg = msg.replace(self.nickname + ': ', '')
+        path = "/"+msg.replace(' ', '/')
+        logging.debug('path is %s' % path)
+        endpoint, args = mapper.match(path)
+        endpoint(channel, nick, msg, args)
 
 
 class URLBotFactory(protocol.ClientFactory):
     """docstring for URLBotFavtory"""
 
     def __init__(self, network, config):
-        dbn = os.environ.get('REDISCLOUD_URL', config['dbn']) 
+        dbn = os.environ.get('REDISCLOUD_URL', config['dbn'])
         if not dbn or "redis" not in dbn:
             logging.error("URLBot doesn't support anything except redis right now, please use a redis db")
             sys.exit(1)
@@ -127,9 +121,11 @@ class URLBotFactory(protocol.ClientFactory):
         self.config = config['networks'][network]
         if 'plugins' in config:
             self.plugin_config = config['plugins']
+        else:
+            self.plugin_config = None
 
     def buildProtocol(self, addr):
-        p = URLBot(self.config['nickname'].encode('UTF-8'))
+        p = URLBot(self.config['nickname'].encode('UTF-8'), self.plugin_config)
         p.factory = self
         return p
 
@@ -138,6 +134,7 @@ class URLBotFactory(protocol.ClientFactory):
 
     def clientConnectionFailed(self, connector, reason):
         reactor.stop()
+
 
 def main(config="config.json", debug=False):
     if debug:
