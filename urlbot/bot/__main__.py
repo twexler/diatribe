@@ -102,7 +102,7 @@ class URLBot(irc.IRCClient):
             msg = msg.replace(trigger, '')
         if msg.startswith(self.nickname + ': '):
             msg = msg.replace(self.nickname + ': ', '')
-        path = "/"+msg.replace(' ', '/')
+        path = "/"+msg.replace(' ', '  ')
         logging.debug('path is %s' % path)
         try:
             endpoint, args = mapper.match(path)

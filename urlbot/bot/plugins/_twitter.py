@@ -14,7 +14,7 @@ class TwitterPlugin():
     """docstring for TwitterPlugin"""
 
     def __init__(self, bot):
-        bot.rule_map.add(Rule('/<any(t, twitter):cmd>/<user>',
+        bot.rule_map.add(Rule('/<any(t, twitter):cmd>  <user>',
                               endpoint=self.last_tweet))
         self.bot = bot
 

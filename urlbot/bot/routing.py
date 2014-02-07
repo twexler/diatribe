@@ -16,13 +16,15 @@ class FinalStringConverter(BaseConverter):
 class URLConverter(BaseConverter):
     """docstring"""
 
-    regex = r"(http[s]*:\/\/(.*))"
+    regex = r".*(http[s]*:\/\/([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}))\S+"
 
     def __init__(self, map, domain=None):
         self.domain = domain
         pass
 
     def to_python(self, value):
+        logging.debug('value is: %s' % value)
+        value = value[value.find('http'):]
         logging.debug('domain is: %s' % self.domain)
         if self.domain:
             url = urlparse.urlparse(value)

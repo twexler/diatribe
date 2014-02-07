@@ -16,7 +16,7 @@ API_URL = "https://api.wunderground.com/api/%(key)s/conditions/q/%(query)s.json"
 class WeatherPlugin():
 
     def __init__(self, bot):
-        bot.rule_map.add(Rule('/<any(w, weather):cmd>/<fstring:query>',
+        bot.rule_map.add(Rule('/<any(w, weather):cmd>  <fstring:query>',
                               endpoint=self.current_conditions))
         self.bot = bot
 
