@@ -10,6 +10,9 @@ from werkzeug.routing import Rule
 
 from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 
+from twitter import Twitter as twitter_api, OAuth as twitter_oauth
+from twitter.api import TwitterHTTPError
+
 CLASS_NAME = "URLPlugin"
 
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=%(id)s&key=%(apikey)s"
@@ -20,6 +23,7 @@ class URLPlugin():
     def __init__(self, bot):
         bot.rule_map.add(Rule('/<url("youtube.com"):url>',
                               endpoint=self.handle_youtube))
+        bot.rule_map.add(Rule('/<url("twitter.com"):url>', endpoint=self.handle_twitter))
         bot.rule_map.add(Rule('/<url:url>', endpoint=self.handle_url))
         self.bot = bot
         pass
@@ -42,15 +46,20 @@ class URLPlugin():
         url_obj['url'] = url
         url_obj['source'] = "<%s> %s" % (nick, msg)
         url_obj['ts'] = time.time()
+        url_obj['type'] = 'url'
         url_id = hashlib.sha1(url).hexdigest()[:9]
         self.log_url(url_id, url_obj, channel)
 
     def handle_youtube(self, channel, nick, msg, args):
+        url = args['url'].geturl()
+        if 'watch' not in url:
+            self.handle_url(channel, nick, msg,
+                            args={'url': url})
+            return
         logging.debug('got youtube url: %s' % str(args['url']))
         video_id = args['url'].query.split('=')[1]
         apis_config = self.bot.plugin_config['google_apis']
         url_args = {'id': video_id, 'apikey': apis_config['key']}
-        url = args['url'].geturl()
         try:
             r = requests.get(YOUTUBE_API_URL % url_args,
                              headers={'Referer': apis_config['referer']})
@@ -58,6 +67,7 @@ class URLPlugin():
             # in case we can't contact the youtube api, log anyway
             self.handle_url(channel, nick, msg,
                             args={'url': url})
+            return
         resp = r.json()['items'][0]
         #thanks for fucking up this length encoding, youtube
         length = resp['contentDetails']['duration'].replace('PT', '')
@@ -75,12 +85,43 @@ class URLPlugin():
         url_obj['ts'] = time.time()
         url_obj['url'] = url
         url_obj['source'] = "<%s> %s" % (nick, msg)
+        url_obj['type'] = 'youtube'
         url_id = hashlib.sha1(url).hexdigest()[:9]
         formatted_msg = assembleFormattedText(A.bold[url_obj['title']]) + " "
         formatted_msg += assembleFormattedText(A.normal["(" + length + ") "])
         formatted_msg += assembleFormattedText(A.bold['Uploaded by: '])
         formatted_msg += assembleFormattedText(A.normal[url_obj['author']])
         formatted_msg += time.strftime(" on %c", time.gmtime(url_obj['created_ts']))
+        self.bot.msg(channel.encode('UTF-8'), formatted_msg)
+        self.log_url(url_id, url_obj, channel)
+
+    def handle_twitter(self, channel, nick, msg, args):
+        url = args['url']
+        if 'twitter_api' not in self.bot.plugin_config or 'status' not in url.path:
+            self.handle_url(channel, nick, msg, args={'url': url.geturl()})
+        creds = self.bot.plugin_config['twitter_api']
+        auth = twitter_oauth(creds['access_token'],
+                             creds['access_token_secret'],
+                             creds['consumer_key'],
+                             creds['consumer_secret'])
+        t = twitter_api(auth=auth)
+        tweet_id = url.path.split('/')[-1:][0]
+        try:
+            tweet = t.statuses.show(id=tweet_id)
+        except TwitterHTTPError:
+            logging.exception('Caught twitter api exception:')
+            self.handle_url(channel, nick, msg, args={'url': url.geturl()})
+            return
+        url_obj = {}
+        url_obj['type'] = 'tweet'
+        url_obj['author'] = tweet['user']['screen_name'].encode('UTF-8')
+        url_obj['title'] = tweet['text'].encode('UTF-8')
+        url_obj['ts'] = time.time()
+        url_obj['source'] = "<%s> %s" % (nick, msg)
+        url_obj['url'] = url.geturl()
+        formatted_msg = assembleFormattedText(A.bold[url_obj['author']])
+        formatted_msg += assembleFormattedText(A.normal[" tweets: "]) + url_obj['title']
+        url_id = hashlib.sha1(url.geturl()).hexdigest()[:9]
         self.bot.msg(channel.encode('UTF-8'), formatted_msg)
         self.log_url(url_id, url_obj, channel)
 
