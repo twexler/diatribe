@@ -11,5 +11,13 @@
 				"#amaninacan"
 			]
 		}
+	},
+	"plugins": {
+		"trigger": "!",
+		"wunderground_key": "7ef3505b6083970a",
+		"google_apis": {
+			"referer": "http://abananasplit.stuckinacan.com/foo",
+			"key": "AIzaSyATcEt_zdOyL2DhvS6xzqIQMgp7FEgIChU"
+		}
 	}
 }
