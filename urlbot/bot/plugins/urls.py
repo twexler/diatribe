@@ -23,8 +23,10 @@ class URLPlugin():
     def __init__(self, bot):
         bot.rule_map.add(Rule('/<url("youtube.com"):url>',
                               endpoint=self.handle_youtube))
-        bot.rule_map.add(Rule('/<url("twitter.com"):url>', endpoint=self.handle_twitter))
-        bot.rule_map.add(Rule('/<url:url>', endpoint=self.handle_url))
+        bot.rule_map.add(Rule('/<url("twitter.com"):url>',
+                              endpoint=self.handle_twitter))
+        bot.rule_map.add(Rule('/<url:url>',
+                              endpoint=self.handle_url))
         self.bot = bot
         pass
 

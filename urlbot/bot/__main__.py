@@ -20,7 +20,7 @@ from twisted.internet import ssl, reactor, protocol
 from werkzeug.routing import Map, DEFAULT_CONVERTERS
 from werkzeug.exceptions import NotFound
 
-from routing import *
+from converters import *
 
 
 class URLBot(irc.IRCClient):
