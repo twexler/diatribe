@@ -10,6 +10,14 @@
 			[
 				"#amaninacan"
 			]
+		},
+		"plugins": {
+			"trigger": "!",
+			"wundground_key": "APIKEY",
+			"google_apis": {
+				"apikey": "APIKEY",
+				"referer": "http://example.com"
+			}
 		}
 	}
 }
