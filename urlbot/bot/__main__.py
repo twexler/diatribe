@@ -18,6 +18,7 @@ from twisted.words.protocols import irc
 from twisted.internet import ssl, reactor, protocol
 
 from werkzeug.routing import Map, DEFAULT_CONVERTERS
+from werkzeug.exceptions import NotFound
 
 from routing import *
 
@@ -103,7 +104,11 @@ class URLBot(irc.IRCClient):
             msg = msg.replace(self.nickname + ': ', '')
         path = "/"+msg.replace(' ', '/')
         logging.debug('path is %s' % path)
-        endpoint, args = mapper.match(path)
+        try:
+            endpoint, args = mapper.match(path)
+        except NotFound:
+            logging.debug("<%s> %s" % (nick, msg))
+            return
         endpoint(channel, nick, msg, args)
 
 
