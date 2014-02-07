@@ -18,6 +18,12 @@
 		"google_apis": {
 			"referer": "http://abananasplit.stuckinacan.com/foo",
 			"key": "AIzaSyATcEt_zdOyL2DhvS6xzqIQMgp7FEgIChU"
+		},
+		"twitter_api": {
+			"consumer_key": "yNdRZUV45YpCtpVl6NtMBg",
+			"consumer_secret": "8p2UdSqRXRXEeRzai7XjCIVsjMZ2kMoVj810dQ2K5g",
+			"access_token": "14261571-Wtkf69p6XsE59YcHF1MFn5wwH62q6YnJotSG8XXpy",
+			"access_token_secret": "KZQemWRv1nCrRCxOE8WFgBRRjOjCKUdS7ZtNpveWkGqiy"
 		}
 	}
 }
