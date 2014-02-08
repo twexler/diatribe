@@ -3,6 +3,7 @@ import logging
 
 from werkzeug.routing import BaseConverter, ValidationError
 
+
 class FinalStringConverter(BaseConverter):
     """docstring for FinalStringConverter"""
 

@@ -72,10 +72,12 @@ class URLBot(irc.IRCClient):
         logging.info("signed on to %s" % self.hostname)
         if self.factory.network not in self.factory.store.hkeys('networks'):
             self.host_id = hashlib.sha1(self.factory.network).hexdigest()[:9]
-            self.factory.store.hset('networks', self.factory.network, self.host_id)
+            self.factory.store.hset('networks',
+                                    self.factory.network, self.host_id)
             logging.debug('set host id in redis')
         else:
-            self.host_id = self.factory.store.hget('networks', self.factory.network)
+            self.host_id = self.factory.store.hget('networks',
+                                                   self.factory.network)
             logging.debug('got host id from redis')
         for channel in self.factory.config['channels']:
             self.join(channel.encode('UTF-8'))
@@ -85,11 +87,12 @@ class URLBot(irc.IRCClient):
         if channel not in self.channels:
             chan_obj = {}
             chan_obj['id'] = hashlib.sha1(channel).hexdigest()[:9]
-            chan_obj['map'] = self.rule_map.bind(self.factory.network, '/')
+            chan_obj['map'] = self.rule_map.bind(self.factory.network, '/',
+                                                 default_method='privmsg')
             self.channels[channel] = chan_obj
-            channel_ids = dict([(k, v['id']) for k,v in self.channels.iteritems()])
-            self.factory.store.hmset('%s.channels' % self.host_id, channel_ids)
-            logging.debug('set %s.channels to %s' % (self.host_id, channel_ids))
+            chan_ids = dict([(k, v['id']) for k, v in self.channels.iteritems()])
+            self.factory.store.hmset('%s.channels' % self.host_id, chan_ids)
+            logging.debug('set %s.channels to %s' % (self.host_id, chan_ids))
         logging.info("joined %s" % channel)
 
     def privmsg(self, nick, channel, msg):
@@ -121,7 +124,8 @@ class URLBotFactory(protocol.ClientFactory):
             logging.error("URLBot doesn't support anything except redis right now, please use a redis db")
             sys.exit(1)
         url = urlparse.urlparse(dbn)
-        self.store = redis.StrictRedis(host=url.hostname, port=url.port, password=url.password)
+        self.store = redis.StrictRedis(host=url.hostname,
+                                       port=url.port, password=url.password)
         self.network = network
         self.config = config['networks'][network]
         if 'plugins' in config:
@@ -154,7 +158,9 @@ def main(config="config.json", debug=False):
         logging.debug('netconfig is %s ' % net_config)
         f = URLBotFactory(network, config)
         if net_config['ssl']:
-            reactor.connectSSL(net_config['network'], net_config['port'], f, ssl.ClientContextFactory())
+            reactor.connectSSL(net_config['network'],
+                               net_config['port'], f,
+                               ssl.ClientContextFactory())
         else:
             reactor.connectTCP(net_config['network'], net_config['port'], f)
         del f
