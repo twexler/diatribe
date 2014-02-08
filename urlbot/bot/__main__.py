@@ -17,7 +17,7 @@ import redis
 from twisted.words.protocols import irc
 from twisted.internet import ssl, reactor, protocol
 
-from werkzeug.routing import Map, DEFAULT_CONVERTERS
+from werkzeug.routing import Map, DEFAULT_CONVERTERS, BaseConverter
 from werkzeug.exceptions import NotFound
 
 from converters import *
@@ -33,7 +33,9 @@ class URLBot(irc.IRCClient):
     def __init__(self, nickname, config):
         self.nickname = nickname
         self.plugin_config = config
-        my_converters = {'fstring': FinalStringConverter, 'url': URLConverter}
+        triggerConverter = self.create_trigger_converter()
+        my_converters = {'fstring': FinalStringConverter,
+                         'url': URLConverter, 'trigger': triggerConverter}
         my_converters.update(DEFAULT_CONVERTERS)
         self.rule_map = Map([], converters=my_converters)
         self.load_plugins()
@@ -63,6 +65,12 @@ class URLBot(irc.IRCClient):
                 logging.error('Failed to initialize plugin %s' % name)
                 logging.exception('Caught exception: ')
         pass
+
+    def create_trigger_converter(self):
+        my_tc = BaseConverter
+        my_tc.regex = r"%s|(%s:\s+)" % (self.plugin_config['trigger'],
+                                        self.nickname)
+        return my_tc
 
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
@@ -103,11 +111,6 @@ class URLBot(irc.IRCClient):
     def dispatch_plugin(self, nick, channel, msg=None, method=None):
         mapper = self.channels[channel]['map']
         logging.debug('mapper rules: %s' % mapper.map._rules)
-        trigger = self.plugin_config['trigger']
-        if msg.startswith(trigger):
-            msg = msg.replace(trigger, '')
-        if msg.startswith(self.nickname + ': '):
-            msg = msg.replace(self.nickname + ': ', '')
         logging.debug('dispatching plugin with msg: %s' % msg)
         path = "/"+msg.replace(' ', '  ')
         logging.debug('path is %s' % path)

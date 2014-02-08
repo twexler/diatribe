@@ -15,7 +15,7 @@ class UrbanDictionaryPlugin():
     """docstring for UrbanDictionaryPlugin"""
 
     def __init__(self, bot):
-        bot.rule_map.add(Rule('/<any(ud, urbandictionary):cmd> <fstring:query>',
+        bot.rule_map.add(Rule('/<trigger:t><any(ud, urbandictionary):cmd> <fstring:query>',
                               endpoint=self.urbandictionary_lookup))
         self.bot = bot
 

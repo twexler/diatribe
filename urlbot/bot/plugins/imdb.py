@@ -17,7 +17,7 @@ class IMDBPlugin():
     """docstring for UrbanDictionaryPlugin"""
 
     def __init__(self, bot):
-        bot.rule_map.add(Rule('/<any(i, imdb, movie, tv):cmd> <fstring:query>',
+        bot.rule_map.add(Rule('/<trigger:t><any(i, imdb, movie, tv):cmd> <fstring:query>',
                               endpoint=self.search_imdb))
         self.bot = bot
 

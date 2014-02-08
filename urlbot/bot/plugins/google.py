@@ -15,7 +15,7 @@ class GooglePlugin():
     """docstring for TwitterPlugin"""
 
     def __init__(self, bot):
-        bot.rule_map.add(Rule('/<any(g, google):cmd>  <fstring:query>',
+        bot.rule_map.add(Rule('/<trigger:t><any(g, google):cmd>  <fstring:query>',
                               endpoint=self.first_google_result))
         self.bot = bot
 
