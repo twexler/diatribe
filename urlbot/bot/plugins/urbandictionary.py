@@ -35,14 +35,13 @@ class UrbanDictionaryPlugin():
             else:
                 definition = data['list'][0]
                 word = definition['word'].encode('UTF-8')
+                def_text = definition['definition'].encode('UTF-8')
+                permalink = definition['permalink'].encode('UTF-8')
                 formatted_msg = assembleFormattedText(A.bold[word])
                 formatted_msg += assembleFormattedText(A.normal[": "])
-                formatted_msg += definition['definition'].encode('UTF-8')
-                formatted_example = assembleFormattedText(A.bold['Exmaple'])
-                formatted_example += assembleFormattedText(A.normal[': '])
-                formatted_example += definition['example'].encode('UTF-8')
-                self.bot.msg(channel.encode('UTF-8'), formatted_msg)
-                self.bot.msg(channel.encode('UTF-8'), formatted_example)
+                formatted_msg += def_text.split('\r\n')[0]
+                formatted_msg += assembleFormattedText(A.bold[" See more: "])
+                formatted_msg += assembleFormattedText(A.normal[permalink])
                 self.bot.msg(channel, formatted_msg)
         else:
             self.bot.msg(channel, 'No results for %s' % query)
