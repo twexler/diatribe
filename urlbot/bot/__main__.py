@@ -98,6 +98,9 @@ class URLBot(irc.IRCClient):
     def privmsg(self, nick, channel, msg):
         nick = nick.split("!")[0]
         channel = channel.decode('UTF-8')
+        self.dispatch_plugin(nick, channel, msg)
+
+    def dispatch_plugin(self, nick, channel, msg=None, method=None):
         mapper = self.channels[channel]['map']
         logging.debug('mapper rules: %s' % mapper.map._rules)
         trigger = self.plugin_config['trigger']
@@ -105,12 +108,14 @@ class URLBot(irc.IRCClient):
             msg = msg.replace(trigger, '')
         if msg.startswith(self.nickname + ': '):
             msg = msg.replace(self.nickname + ': ', '')
-        path = "/"+msg.replace(' ', '/')
+        logging.debug('dispatching plugin with msg: %s' % msg)
+        path = "/"+msg.replace(' ', '  ')
         logging.debug('path is %s' % path)
         try:
-            endpoint, args = mapper.match(path)
+            endpoint, args = mapper.match(path, method)
         except NotFound:
-            logging.debug("<%s> %s" % (nick, msg))
+            if method == 'privmsg':
+                logging.debug("<%s> %s" % (nick, msg))
             return
         endpoint(channel.encode('UTF-8'), nick, msg, args)
 
