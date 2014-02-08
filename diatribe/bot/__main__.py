@@ -23,8 +23,8 @@ from werkzeug.exceptions import NotFound
 from converters import *
 
 
-class URLBot(irc.IRCClient):
-    """docstring for URLBot"""
+class Diatribe(irc.IRCClient):
+    """docstring for Diatribe"""
 
     nickname = None
     channels = {}
@@ -120,13 +120,13 @@ class URLBot(irc.IRCClient):
         endpoint(channel.encode('UTF-8'), nick, msg, args)
 
 
-class URLBotFactory(protocol.ClientFactory):
-    """docstring for URLBotFavtory"""
+class DiatribeFactory(protocol.ClientFactory):
+    """docstring for DiatribeFavtory"""
 
     def __init__(self, network, config):
         dbn = os.environ.get('REDISCLOUD_URL', config['dbn'])
         if not dbn or "redis" not in dbn:
-            logging.error("URLBot doesn't support anything except redis right now, please use a redis db")
+            logging.error("Diatribe doesn't support anything except redis right now, please use a redis db")
             sys.exit(1)
         url = urlparse.urlparse(dbn)
         self.store = redis.StrictRedis(host=url.hostname,
@@ -139,7 +139,8 @@ class URLBotFactory(protocol.ClientFactory):
             self.plugin_config = None
 
     def buildProtocol(self, addr):
-        p = URLBot(self.config['nickname'].encode('UTF-8'), self.plugin_config)
+        p = Diatribe(self.config['nickname'].encode('UTF-8'),
+                     self.plugin_config)
         p.factory = self
         return p
 
@@ -161,7 +162,7 @@ def main(config="config.json", debug=False):
     for network in config['networks']:
         net_config = config['networks'][network]
         logging.debug('netconfig is %s ' % net_config)
-        f = URLBotFactory(network, config)
+        f = DiatribeFactory(network, config)
         if net_config['ssl']:
             reactor.connectSSL(net_config['network'],
                                net_config['port'], f,

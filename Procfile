@@ -1,1 +1,1 @@
-web: bin/urlbot-heroku
+web: bin/diatribe-heroku
