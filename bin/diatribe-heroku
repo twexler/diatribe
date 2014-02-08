@@ -1,0 +1,2 @@
+gunicorn diatribe.app:app &
+python -m diatribe.bot -d

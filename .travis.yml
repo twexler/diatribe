@@ -6,6 +6,6 @@ install:
     - pip install -r requirements.txt --use-mirrors
     - pip install coveralls
 script: 
-    nosetests --with-coverage --cover-package=urlbot
+    nosetests --with-coverage --cover-package=diatribe
 after_success:
     coveralls

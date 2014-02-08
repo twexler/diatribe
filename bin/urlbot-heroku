@@ -1,2 +1,0 @@
-gunicorn urlbot.app:app &
-python -m urlbot.bot -d
