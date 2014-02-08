@@ -17,7 +17,7 @@ class URLConverter(BaseConverter):
     """docstring"""
     # This is quite literally the most complex and
     # annoying regex I've ever written
-    regex = r".*\s*(http[s]*:\/\/([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}/?\S*))\s*\w*"
+    regex = r".*\s*(http[s]*:\/\/([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6}/?\S*))\s*.*"
 
     def __init__(self, map, domain=None):
         self.domain = domain
