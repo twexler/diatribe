@@ -92,6 +92,13 @@ class URLConverterTest(unittest.TestCase):
         self.assertEquals(endpoint, 'youtube')
         self.assertEquals(args['url'], urlparse.urlparse(url))
 
+    def test_short_url(self):
+        msg = r"https://treats.io/"
+        url = r"https://treats.io/"
+        endpoint, args = self.matcher(msg)
+        self.assertEquals(endpoint, 'url')
+        self.assertEquals(args['url'], url)
+
     def matcher(self, msg):
         msg = msg.replace(' ', '  ')
         logging.debug('msg is: %s' % msg)
