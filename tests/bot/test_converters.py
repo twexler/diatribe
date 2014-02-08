@@ -43,6 +43,13 @@ class URLConverterTest(unittest.TestCase):
         self.assertEquals(endpoint, 'url')
         self.assertEquals(args['url'], url)
 
+    def test_regular_url_with_trailing_text_and_punctuation(self):
+        msg = "test http://google.com test."
+        url = "http://google.com"
+        endpoint, args = self.matcher(msg)
+        self.assertEquals(endpoint, 'url')
+        self.assertEquals(args['url'], url)
+
     def test_complex_url(self):
         msg = r"https://www.google.com/#q=test+test%20test"
         url = r"https://www.google.com/#q=test+test%20test"
@@ -66,6 +73,13 @@ class URLConverterTest(unittest.TestCase):
 
     def test_complex_url_with_surrounding_text(self):
         msg = r"test https://www.google.com/#q=test+test%20test test"
+        url = r"https://www.google.com/#q=test+test%20test"
+        endpoint, args = self.matcher(msg)
+        self.assertEquals(endpoint, 'url')
+        self.assertEquals(args['url'], url)
+
+    def test_complex_url_with_trailing_text_and_punctuation(self):
+        msg = r"https://www.google.com/#q=test+test%20test test."
         url = r"https://www.google.com/#q=test+test%20test"
         endpoint, args = self.matcher(msg)
         self.assertEquals(endpoint, 'url')
