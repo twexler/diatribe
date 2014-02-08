@@ -3,7 +3,7 @@ import urlparse
 
 from werkzeug.routing import Map, Rule
 
-from urlbot.bot.converters import *
+from diatribe.bot.converters import *
 
 
 class URLConverterTest(unittest.TestCase):
