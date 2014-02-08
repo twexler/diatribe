@@ -37,6 +37,8 @@ class URLPlugin():
             r = requests.get(url)
         except requests.exceptions.ConnectionError:
             logging.debug('invalid url')
+            logging.exception('caught exception trying to fetch %s:' % url)
+            return False
         url_obj = {}
         if 'image' in r.headers['content-type']:
             url_obj['type'] = "image"
@@ -48,7 +50,7 @@ class URLPlugin():
             url_obj['type'] = 'url'
         my_msg = "%s" % title
         formatted_msg = assembleFormattedText(A.bold[my_msg.encode('UTF-8')])
-        self.bot.msg(channel.encode('UTF-8'), formatted_msg)
+        self.bot.msg(channel, formatted_msg)
         url_obj['title'] = str(title)
         url_obj['url'] = url
         url_obj['source'] = "<%s> %s" % (nick, msg)
@@ -98,7 +100,7 @@ class URLPlugin():
         formatted_msg += assembleFormattedText(A.bold['Uploaded by: '])
         formatted_msg += assembleFormattedText(A.normal[url_obj['author']])
         formatted_msg += time.strftime(" on %c", time.gmtime(url_obj['created_ts']))
-        self.bot.msg(channel.encode('UTF-8'), formatted_msg)
+        self.bot.msg(channel, formatted_msg)
         self.log_url(url_id, url_obj, channel)
 
     def handle_twitter(self, channel, nick, msg, args):
@@ -128,7 +130,7 @@ class URLPlugin():
         formatted_msg = assembleFormattedText(A.bold[url_obj['author']])
         formatted_msg += assembleFormattedText(A.normal[" tweets: "]) + url_obj['title']
         url_id = hashlib.sha1(url.geturl()).hexdigest()[:9]
-        self.bot.msg(channel.encode('UTF-8'), formatted_msg)
+        self.bot.msg(channel, formatted_msg)
         self.log_url(url_id, url_obj, channel)
 
     def log_url(self, url_id, url_obj, channel):

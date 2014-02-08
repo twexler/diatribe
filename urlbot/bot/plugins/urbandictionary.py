@@ -25,7 +25,7 @@ class UrbanDictionaryPlugin():
             r = requests.get(API_URL % query)
             r.raise_for_status()
         except requests.exceptions.HTTPError:
-            self.bot.msg(channel.encode('UTF-8'), 'No results for %s' % query)
+            self.bot.msg(channel, 'No results for %s' % query)
             return False
         data = r.json()
         if 'result_type' in data:
@@ -43,6 +43,7 @@ class UrbanDictionaryPlugin():
                 formatted_example += definition['example'].encode('UTF-8')
                 self.bot.msg(channel.encode('UTF-8'), formatted_msg)
                 self.bot.msg(channel.encode('UTF-8'), formatted_example)
+                self.bot.msg(channel, formatted_msg)
         else:
-            self.bot.msg(channel.encode('UTF-8'), 'No results for %s' % query)
+            self.bot.msg(channel, 'No results for %s' % query)
             return False

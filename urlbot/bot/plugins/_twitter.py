@@ -21,7 +21,7 @@ class TwitterPlugin():
     def last_tweet(self, channel, nick, msg, args):
         if 'twitter_api' not in self.bot.plugin_config:
             logging.debug('configure twitter plugin')
-            self.bot.msg(channel.encode('UTF-8'),
+            self.bot.msg(channel,
                          'Twitter plugin not configured')
             return False
         creds = self.bot.plugin_config['twitter_api']
@@ -40,4 +40,4 @@ class TwitterPlugin():
         screen_name = args['user'].encode('UTF-8')
         formatted_msg = assembleFormattedText(A.bold[screen_name])
         formatted_msg += assembleFormattedText(A.normal[" tweets: "]) + text
-        self.bot.msg(channel.encode('UTF-8'), formatted_msg)
+        self.bot.msg(channel, formatted_msg)

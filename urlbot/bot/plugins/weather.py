@@ -24,7 +24,7 @@ class WeatherPlugin():
         query = ' '.join(args['query'].split('  '))
         if 'wunderground_key' not in self.bot.plugin_config:
             logging.debug('configure weather plugin')
-            self.bot.msg(channel.encode('UTF-8'),
+            self.bot.msg(channel,
                          'Weather plugin not configured')
             return False
         try:
@@ -35,10 +35,10 @@ class WeatherPlugin():
             data = r.json()['current_observation']
         except:
             logging.exception('Caught exception while searching for weather')
-            self.bot.msg(channel.encode('UTF-8'),
+            self.bot.msg(channel,
                          'Cannot find weather for %s' % query)
             return False
         response = assembleFormattedText(A.bold[data['display_location']['full'].encode('UTF-8')])
         response += assembleFormattedText(A.normal[" (%s): " % query])
         response += "%(weather)s, %(temperature_string)s, Humidity: %(relative_humidity)s, %(observation_time)s" % data
-        self.bot.msg(channel.encode('UTF-8'), response.encode('UTF-8'))
+        self.bot.msg(channel, response.encode('UTF-8'))

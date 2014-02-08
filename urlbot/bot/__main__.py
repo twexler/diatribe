@@ -109,7 +109,7 @@ class URLBot(irc.IRCClient):
         except NotFound:
             logging.debug("<%s> %s" % (nick, msg))
             return
-        endpoint(channel, nick, msg, args)
+        endpoint(channel.encode('UTF-8'), nick, msg, args)
 
 
 class URLBotFactory(protocol.ClientFactory):

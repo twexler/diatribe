@@ -34,4 +34,4 @@ class GooglePlugin():
         title = result['titleNoFormatting'].encode('UTF-8')
         formatted_msg = assembleFormattedText(A.bold[title]) + ": "
         formatted_msg += result['url'].encode('UTF-8')
-        self.bot.msg(channel.encode('UTF-8'), formatted_msg)
+        self.bot.msg(channel, formatted_msg)
