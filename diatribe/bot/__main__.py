@@ -33,7 +33,9 @@ class Diatribe(irc.IRCClient):
     def __init__(self, nickname, config):
         self.nickname = nickname
         self.plugin_config = config
-        my_converters = {'fstring': FinalStringConverter, 'url': URLConverter}
+        triggerConverter = self.create_trigger_converter()
+        my_converters = {'fstring': FinalStringConverter,
+                         'url': URLConverter, 'trigger': triggerConverter}
         my_converters.update(DEFAULT_CONVERTERS)
         self.rule_map = Map([], converters=my_converters)
         self.load_plugins()
@@ -69,8 +71,6 @@ class Diatribe(irc.IRCClient):
                 logging.exception('Caught exception: ')
         pass
 
-<<<<<<< HEAD
-=======
     def create_trigger_converter(self):
         my_tc = BaseConverter
         my_tc.regex = r"%s|(%s:\s+)" % (self.plugin_config['trigger'],
@@ -103,7 +103,6 @@ class Diatribe(irc.IRCClient):
             self.rule_map._rules.update()
         self.rule_map.add(rule)
 
->>>>>>> 3ae2c34... A lot of plugin creation/routing/dispatching changes
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
         logging.info("connected")
@@ -143,16 +142,6 @@ class Diatribe(irc.IRCClient):
             self.dispatch_plugin(nick, channel, msg)
 
     def dispatch_plugin(self, nick, channel, msg=None, method=None):
-<<<<<<< HEAD
-        mapper = self.channels[channel]['map']
-        logging.debug('mapper rules: %s' % mapper.map._rules)
-        trigger = self.plugin_config['trigger']
-        if msg.startswith(trigger):
-            msg = msg.replace(trigger, '')
-        if msg.startswith(self.nickname + ': '):
-            msg = msg.replace(self.nickname + ': ', '')
-=======
->>>>>>> 3ae2c34... A lot of plugin creation/routing/dispatching changes
         logging.debug('dispatching plugin with msg: %s' % msg)
         path = "/"+msg.replace(' ', '  ')
         logging.debug('path is %s' % path)

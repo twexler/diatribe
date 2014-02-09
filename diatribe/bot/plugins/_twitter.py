@@ -2,20 +2,22 @@ import logging
 
 from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 
-from werkzeug.routing import Rule
-
 from twitter import Twitter as twitter_api, OAuth as twitter_oauth
 from twitter.api import TwitterHTTPError
 
 CLASS_NAME = "TwitterPlugin"
+SHORT_HELP = "%(trigger)st, %(trigger)stwitter <user>: outputs \
+              the most recent tweet from the user specified"
 
 
 class TwitterPlugin():
     """docstring for TwitterPlugin"""
 
     def __init__(self, bot):
-        bot.rule_map.add(Rule('/<any(t, twitter):cmd>/<user>',
-                              endpoint=self.last_tweet))
+        bot.register_command(__name__, 't', self.last_tweet,
+                             custom_rule="<user>", query=False)
+        bot.register_command(__name__, 'twitter', self.last_tweet,
+                             custom_rule="<user>", query=False)
         self.bot = bot
 
     def last_tweet(self, channel, nick, msg, args):

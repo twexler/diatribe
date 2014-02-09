@@ -6,9 +6,9 @@ import requests
 
 from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 
-from werkzeug.routing import Rule
-
 CLASS_NAME = "WeatherPlugin"
+SHORT_HELP = "%(trigger)sw, %(trigger)sweather <location>: outputs \
+              the most recent weather from the location specified"
 
 API_URL = "https://api.wunderground.com/api/%(key)s/conditions/q/%(query)s.json"
 
@@ -16,12 +16,12 @@ API_URL = "https://api.wunderground.com/api/%(key)s/conditions/q/%(query)s.json"
 class WeatherPlugin():
 
     def __init__(self, bot):
-        bot.rule_map.add(Rule('/<any(w, weather):cmd>/<fstring:query>',
-                              endpoint=self.current_conditions))
+        bot.register_command(__name__, 'w', self.current_conditions)
+        bot.register_command(__name__, 'weather', self.current_conditions)
         self.bot = bot
 
     def current_conditions(self, channel, nick, msg, args):
-        query = ' '.join(args['query'].split('/'))
+        query = ' '.join(args['query'].split('  ')).lstrip()
         if 'wunderground_key' not in self.bot.plugin_config:
             logging.debug('configure weather plugin')
             self.bot.msg(channel,

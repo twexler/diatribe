@@ -35,7 +35,9 @@ class URLPlugin():
         logging.info("caught url: %s" % url)
         try:
             r = requests.get(url)
-        except requests.exceptions.ConnectionError:
+            r.raise_for_status()
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.HTTPError):
             logging.debug('invalid url')
             logging.exception('caught exception trying to fetch %s:' % url)
             return False

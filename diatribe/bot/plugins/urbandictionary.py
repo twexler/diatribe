@@ -2,11 +2,11 @@ import logging
 
 from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 
-from werkzeug.routing import Rule
-
 import requests
 
 CLASS_NAME = "UrbanDictionaryPlugin"
+SHORT_HELP = "%(trigger)sud, %(trigger)surbandictionary <query>: returns \
+              the definition of <query> from urbandictionary.com"
 
 API_URL = "http://api.urbandictionary.com/v0/define?term=%s"
 
@@ -15,8 +15,8 @@ class UrbanDictionaryPlugin():
     """docstring for UrbanDictionaryPlugin"""
 
     def __init__(self, bot):
-        bot.rule_map.add(Rule('/<any(ud, urbandictionary):cmd> <fstring:query>',
-                              endpoint=self.urbandictionary_lookup))
+        bot.register_command(__name__, 'ud', self.urbandictionary_lookup)
+        bot.register_command(__name__, 'urbandictionary', self.urbandictionary_lookup)
         self.bot = bot
 
     def urbandictionary_lookup(self, channel, nick, msg, args):
