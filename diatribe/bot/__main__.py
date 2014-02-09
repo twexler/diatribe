@@ -17,8 +17,8 @@ import redis
 from twisted.words.protocols import irc
 from twisted.internet import ssl, reactor, protocol
 
-from werkzeug.routing import Map, DEFAULT_CONVERTERS
-from werkzeug.exceptions import NotFound
+from werkzeug.routing import Map, DEFAULT_CONVERTERS, BaseConverter, Rule
+from werkzeug.exceptions import NotFound, MethodNotAllowed
 
 from converters import *
 
@@ -37,12 +37,17 @@ class Diatribe(irc.IRCClient):
         my_converters.update(DEFAULT_CONVERTERS)
         self.rule_map = Map([], converters=my_converters)
         self.load_plugins()
+        self.mapper = self.rule_map.bind(self.nickname, '/',
+                                         default_method='chanmsg')
+        logging.debug('mapper rules: %s' % str(self.mapper.map._rules))
 
     def load_plugins(self):
         path = os.path.relpath(os.path.dirname(__file__))
         logging.debug('path is %s' % path)
         for plugin_src in glob.glob('%s/plugins/*.py' % path):
             name = plugin_src.replace('.py', '').replace('/', '.')
+            if name.find('__') > 0:
+                continue
             logging.debug('Attempting to load plugin at %s' % name)
             try:
                 plugin = importlib.import_module(name)
@@ -50,7 +55,7 @@ class Diatribe(irc.IRCClient):
                 logging.error('Unable to load plugin at %s' % plugin_src)
                 logging.exception("Caught exception loading plugin:")
                 continue
-            self.plugins.update({name.split('.')[1]: plugin})
+            self.plugins.update({name: {'class': plugin}})
             try:
                 klass = getattr(plugin, plugin.CLASS_NAME)
             except AttributeError:
@@ -64,6 +69,41 @@ class Diatribe(irc.IRCClient):
                 logging.exception('Caught exception: ')
         pass
 
+<<<<<<< HEAD
+=======
+    def create_trigger_converter(self):
+        my_tc = BaseConverter
+        my_tc.regex = r"%s|(%s:\s+)" % (self.plugin_config['trigger'],
+                                        self.nickname)
+        return my_tc
+
+    def register_command(self, name, command,
+                         endpoint, methods=None, custom_rule=None, query=True):
+        plugin = self.plugins[name]
+        if 'commands' in plugin:
+            plugin['commands'].append(command)
+        else:
+            plugin['commands'] = [command]
+        self.plugins[name] = plugin
+        rules = []
+        if len(plugin['commands']) > 1:
+            rules.append("<any(%s):cmd> " % ', '.join(plugin['commands']))
+        else:
+            rules.append(plugin['commands'][0])
+        if custom_rule:
+            rules.append(custom_rule)
+        if query:
+            rules.append("<fstring:query>")
+        logging.debug('rules are %s' % rules)
+        rule_str = "/<trigger:t>" + ' '.join(rules)
+        rule = Rule(rule_str, endpoint=endpoint, methods=methods)
+        if rule in self.rule_map._rules:
+            index = self.rule_map._rules.index(rule)
+            del self.rule_map._rules[index]
+            self.rule_map._rules.update()
+        self.rule_map.add(rule)
+
+>>>>>>> 3ae2c34... A lot of plugin creation/routing/dispatching changes
     def connectionMade(self):
         irc.IRCClient.connectionMade(self)
         logging.info("connected")
@@ -87,8 +127,6 @@ class Diatribe(irc.IRCClient):
         if channel not in self.channels:
             chan_obj = {}
             chan_obj['id'] = hashlib.sha1(channel).hexdigest()[:9]
-            chan_obj['map'] = self.rule_map.bind(self.factory.network, '/',
-                                                 default_method='privmsg')
             self.channels[channel] = chan_obj
             chan_ids = dict([(k, v['id']) for k, v in self.channels.iteritems()])
             self.factory.store.hmset('%s.channels' % self.host_id, chan_ids)
@@ -96,11 +134,16 @@ class Diatribe(irc.IRCClient):
         logging.info("joined %s" % channel)
 
     def privmsg(self, nick, channel, msg):
-        nick = nick.split("!")[0]
+        nick = nick.split("!")[0].encode('UTF-8')
         channel = channel.decode('UTF-8')
-        self.dispatch_plugin(nick, channel, msg)
+        msg = msg.encode('UTF-8')
+        if channel == self.nickname:
+            self.dispatch_plugin(nick, nick, msg, method='privmsg')
+        else:
+            self.dispatch_plugin(nick, channel, msg)
 
     def dispatch_plugin(self, nick, channel, msg=None, method=None):
+<<<<<<< HEAD
         mapper = self.channels[channel]['map']
         logging.debug('mapper rules: %s' % mapper.map._rules)
         trigger = self.plugin_config['trigger']
@@ -108,16 +151,22 @@ class Diatribe(irc.IRCClient):
             msg = msg.replace(trigger, '')
         if msg.startswith(self.nickname + ': '):
             msg = msg.replace(self.nickname + ': ', '')
+=======
+>>>>>>> 3ae2c34... A lot of plugin creation/routing/dispatching changes
         logging.debug('dispatching plugin with msg: %s' % msg)
         path = "/"+msg.replace(' ', '  ')
         logging.debug('path is %s' % path)
         try:
-            endpoint, args = mapper.match(path, method)
-        except NotFound:
-            if method == 'privmsg':
-                logging.debug("<%s> %s" % (nick, msg))
-            return
-        endpoint(channel.encode('UTF-8'), nick, msg, args)
+            endpoint, args = self.mapper.match(path, method)
+        except (NotFound, MethodNotAllowed):
+            logging.debug('not calling endpoint')
+            if method in ['privmsg', 'chanmsg']:
+                logging.debug("%s: <%s> %s" % (channel, nick, msg))
+                return False
+            return False
+        else:
+            logging.debug('calling endpoint %s, args %s' % (str(endpoint), args))
+            endpoint(channel.encode('UTF-8'), nick, msg, args)
 
 
 class DiatribeFactory(protocol.ClientFactory):
