@@ -2,12 +2,17 @@ import logging
 
 from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 
-from werkzeug.routing import Rule
-
 import requests
 
 CLASS_NAME = "IMDBPlugin"
-
+SHORT_HELP = "%(trigger)si, %(trigger)simdb, %(trigger)stv. %(trigger)smovie <query>\
+              <query>: returns the definition of <query> from imdb.com, see \
+              %(trigger)shelp imdb for more help"
+LONG_HELP = """
+- %(trigger)si and %(trigger)simdb <query>: returns first result for <query> on IMDB
+- %(trigger)stv returns first TV result for <query> on IMDB
+- %(trigger)smovie returns first movie result for <query> on IMDB
+"""
 SEARCH_API_URL = "http://www.omdbapi.com/?s=%s"
 ID_API_URL = "http://www.omdbapi.com/?i=%s"
 IMDB_URL = "http://www.imdb.com/title/%s/"
@@ -17,8 +22,10 @@ class IMDBPlugin():
     """docstring for UrbanDictionaryPlugin"""
 
     def __init__(self, bot):
-        bot.rule_map.add(Rule('/<trigger:t><any(i, imdb, movie, tv):cmd> <fstring:query>',
-                              endpoint=self.search_imdb))
+        bot.register_command(__name__, 'i', self.search_imdb)
+        bot.register_command(__name__, 'imdb', self.search_imdb)
+        bot.register_command(__name__, 'movie', self.search_imdb)
+        bot.register_command(__name__, 'tv', self.search_imdb)
         self.bot = bot
 
     def search_imdb(self, channel, nick, msg, args):
