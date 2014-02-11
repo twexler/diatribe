@@ -1,6 +1,7 @@
 import logging
 import time
 import hashlib
+import re
 
 import requests
 
@@ -48,7 +49,7 @@ class URLPlugin():
         else:
             soup = BeautifulSoup(r.text,
                                  convertEntities=BeautifulSoup.HTML_ENTITIES)
-            title = soup.title.string
+            title = re.sub(r'([\r\n]|\s{2,})', '', soup.title.string)
             url_obj['type'] = 'url'
         my_msg = "%s" % title
         formatted_msg = assembleFormattedText(A.bold[my_msg.encode('UTF-8')])
