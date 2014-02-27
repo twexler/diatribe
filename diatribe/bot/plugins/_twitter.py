@@ -5,7 +5,7 @@ from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 from twitter import Twitter as twitter_api, OAuth as twitter_oauth
 from twitter.api import TwitterHTTPError
 
-CLASS_NAME = "TwitterPlugin"
+ENTRY_CLASS = "TwitterPlugin"
 SHORT_HELP = "%(trigger)st, %(trigger)stwitter <user>: outputs \
               the most recent tweet from the user specified"
 

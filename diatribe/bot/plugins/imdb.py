@@ -4,7 +4,7 @@ from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 
 import requests
 
-CLASS_NAME = "IMDBPlugin"
+ENTRY_CLASS = "IMDBPlugin"
 SHORT_HELP = "%(trigger)si, %(trigger)simdb, %(trigger)stv. %(trigger)smovie <query>\
               <query>: returns the definition of <query> from imdb.com, see \
               %(trigger)shelp imdb for more help"

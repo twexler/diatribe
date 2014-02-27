@@ -4,7 +4,7 @@ from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 
 import requests
 
-CLASS_NAME = "GooglePlugin"
+ENTRY_CLASS = "GooglePlugin"
 SHORT_HELP = "%(trigger)sg, %(trigger)sgoogle <query>: \
               returns the definition of <query> from google.com"
 
