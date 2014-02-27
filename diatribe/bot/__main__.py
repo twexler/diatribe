@@ -59,9 +59,9 @@ class Diatribe(irc.IRCClient):
                 continue
             self.plugins.update({name: {'class': plugin}})
             try:
-                klass = getattr(plugin, plugin.CLASS_NAME)
+                klass = getattr(plugin, plugin.ENTRY_CLASS)
             except AttributeError:
-                logging.error('Unable to load plugin %s, CLASS_NAME undefined' % name)
+                logging.error('Unable to load plugin %s, ENTRY_CLASS undefined' % name)
                 continue
             try:
                 klass(self)

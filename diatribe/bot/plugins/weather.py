@@ -6,7 +6,7 @@ import requests
 
 from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 
-CLASS_NAME = "WeatherPlugin"
+ENTRY_CLASS = "WeatherPlugin"
 SHORT_HELP = "%(trigger)sw, %(trigger)sweather <location>: outputs \
               the most recent weather from the location specified"
 

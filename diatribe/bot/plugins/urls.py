@@ -14,7 +14,7 @@ from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 from twitter import Twitter as twitter_api, OAuth as twitter_oauth
 from twitter.api import TwitterHTTPError
 
-CLASS_NAME = "URLPlugin"
+ENTRY_CLASS = "URLPlugin"
 
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=%(id)s&key=%(apikey)s"
 

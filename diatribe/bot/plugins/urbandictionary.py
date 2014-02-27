@@ -4,7 +4,7 @@ from twisted.words.protocols.irc import assembleFormattedText, attributes as A
 
 import requests
 
-CLASS_NAME = "UrbanDictionaryPlugin"
+ENTRY_CLASS = "UrbanDictionaryPlugin"
 SHORT_HELP = "%(trigger)sud, %(trigger)surbandictionary <query>: returns \
               the definition of <query> from urbandictionary.com"
 
