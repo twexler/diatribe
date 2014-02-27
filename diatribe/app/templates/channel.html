@@ -26,6 +26,16 @@
   								frameborder="0"></iframe>
   					</div>
   				</div>
+  			{% elif url['type'] == "spotify" %}
+  				<div class="panel-heading">
+  					<h3 class="panel-title">Spotify: <a href="http://open.spotify.com/{{ url['spotify_type'] }}/{{ url['spotify_id'] }}">{{ "%s - %s" % (url['artists'], url['title']) }}</a></h3>
+  				</div>
+  				{{ url['source'].decode('UTF-8') }}<br/><br/>
+  				<div class='row' style="margin-left:1em;">
+  					<div class='col-md-6'>
+  						<iframe src="https://embed.spotify.com/?uri=spotify:{{ url['spotify_type'] }}:{{ url['spotify_id'] }}" width="300" height="380" frameborder="0" allowtransparency="true"></iframe>
+  					</div>
+  				</div>
   			{% elif url['type'] == "image" %}
   				<div class="panel-heading">
 					<h3 class="panel-title"><a href="{{ url['url'].decode('UTF-8') }}">{{ url['title'].decode('UTF-8') }}</a></h3>

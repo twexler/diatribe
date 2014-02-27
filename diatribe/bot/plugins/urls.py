@@ -17,6 +17,7 @@ from twitter.api import TwitterHTTPError
 ENTRY_CLASS = "URLPlugin"
 
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=%(id)s&key=%(apikey)s"
+SPOTIFY_API_URL = "http://ws.spotify.com/lookup/1/.json?uri=spotify:%(type)s:%(id)s"
 
 
 class URLPlugin():
@@ -24,6 +25,8 @@ class URLPlugin():
     def __init__(self, bot):
         bot.rule_map.add(Rule('/<url("youtube.com"):url>',
                               endpoint=self.handle_youtube))
+        bot.rule_map.add(Rule('/<url("open.spotify.com"):url>',
+                              endpoint=self.handle_spotify))
         bot.rule_map.add(Rule('/<url("twitter.com"):url>',
                               endpoint=self.handle_twitter))
         bot.rule_map.add(Rule('/<url:url>',
@@ -132,6 +135,53 @@ class URLPlugin():
         url_obj['url'] = url.geturl()
         formatted_msg = assembleFormattedText(A.bold[url_obj['author']])
         formatted_msg += assembleFormattedText(A.normal[" tweets: "]) + url_obj['title']
+        url_id = hashlib.sha1(url.geturl()).hexdigest()[:9]
+        self.bot.msg(channel, formatted_msg)
+        self.log_url(url_id, url_obj, channel)
+
+    def handle_spotify(self, channel, nick, msg, args):
+        url = args['url']
+        path_parts = url.path.split('/')
+        spotify_type = path_parts[1]
+        spotify_id = path_parts[2]
+        if spotify_type != "track":
+            #only handle tracks for now
+            self.handle_url(channel, nick, msg,
+                            args={'url': url.geturl()})
+            return
+        url_args = {
+            'type': spotify_type,
+            'id': spotify_id
+        }
+        try:
+            r = requests.get(SPOTIFY_API_URL % url_args)
+        except requests.exceptions.HTTPError:
+            # in case we can't contact the spotify api, log anyway
+            self.handle_url(channel, nick, msg,
+                            args={'url': url.geturl()})
+            return
+        try:
+            resp = r.json()[spotify_type]
+        except KeyError:
+            self.handle_url(channel, nick, msg,
+                            args={'url': url.geturl()})
+            return
+        url_obj = {}
+        url_obj['type'] = 'spotify'
+        artists = ', '.join([artist['name'] for artist in resp['artists']])
+        url_obj['artists'] = artists.encode('UTF-8')
+        url_obj['title'] = resp['name'].encode('UTF-8')
+        url_obj['album'] = resp['album']['name'].encode('UTF-8')
+        url_obj['released'] = resp['album']['released'].encode('UTF-8')
+        url_obj['spotify_id'] = spotify_id
+        url_obj['spotify_type'] = spotify_type
+        url_obj['source'] = "<%s> %s" % (nick, msg)
+        url_obj['ts'] = time.time()
+        track_name = "%s - %s" % (url_obj['artists'], url_obj['title'])
+        formatted_msg = assembleFormattedText(A.bold[track_name])
+        formatted_msg += assembleFormattedText(A.normal[' From: '])
+        formatted_msg += assembleFormattedText(A.bold[url_obj['album']])
+        formatted_msg += assembleFormattedText(A.normal[' (%s)' % url_obj['released']])
         url_id = hashlib.sha1(url.geturl()).hexdigest()[:9]
         self.bot.msg(channel, formatted_msg)
         self.log_url(url_id, url_obj, channel)
